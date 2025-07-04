@@ -1,0 +1,94 @@
+.container {
+  background-color: #4695BD;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-box {
+  display: flex;
+  background-color: white;
+  width: 80%;
+  max-width: 900px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.form-section {
+  background-color: #0C71A3;
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: white;
+}
+
+.form-section h2 {
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+.form-section label {
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.form-section input {
+  margin-top: 5px;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.form-section button {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: white;
+  color: #0C71A3;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.form-section a {
+  margin-top: 15px;
+  color: #ffffff;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.error {
+  margin-top: 10px;
+  color: #ffc0c0;
+}
+
+.image-section {
+  background-color: #28749A;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.hexagon {
+  width: 250px;
+  text-align: center;
+}
+
+.hexagon img {
+  width: 100%;
+  border-radius: 15px;
+}
+
+.hexagon p {
+  margin-top: 10px;
+  font-weight: bold;
+  color: white;
+}

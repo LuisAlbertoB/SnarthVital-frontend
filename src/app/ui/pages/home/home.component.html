@@ -1,0 +1,33 @@
+<!-- Navbar -->
+<app-navbar></app-navbar>
+
+<!-- Fondo gris -->
+<div class="bg-gray-200 min-h-screen py-10 px-4">
+  <!-- Bienvenida -->
+  <div class="max-w-4xl mx-auto text-center bg-white border-t-4 border-red-500 rounded-lg shadow p-6">
+    <h1 class="text-3xl font-bold mb-1">¡Bienvenido a SmartVitals!</h1>
+    <p class="text-sm text-gray-700">Resumen general del sistema de monitoreo médico</p>
+  </div>
+
+  <!-- Grid de tarjetas -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-10">
+    <app-cards 
+      icon="➕👤"
+      title="AGREGAR PACIENTE"
+      subtitle="Registrar un nuevo paciente"
+      borderColor="border-green-500"
+    />
+    <app-cards 
+      icon="👥"
+      title="TOTAL DE PACIENTES"
+      subtitle="4 esta semana"
+      borderColor="border-blue-500"
+    />
+    <app-cards
+      icon="📊"
+      title="REPORTES"
+      subtitle="Ver reportes y estadísticas"
+      borderColor="border-red-500"
+    />
+  </div>
+</div>
