@@ -1,3 +1,9 @@
+:host {
+  display: block;
+  height: 100vh;
+  background-color: #4695BD;
+}
+
 .container {
   background-color: #4695BD;
   width: 100vw;
