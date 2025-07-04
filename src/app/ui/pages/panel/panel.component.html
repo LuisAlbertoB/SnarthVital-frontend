@@ -1,0 +1,116 @@
+<!-- Navbar -->
+<app-navbar></app-navbar>
+
+<!-- Contenido -->
+<div class="bg-gray-100 min-h-screen py-6 px-4 flex">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white p-4 shadow-md rounded-r-lg h-fit">
+    <h2 class="text-lg font-semibold mb-4">Hardware Conectado</h2>
+    <ul class="space-y-2 text-sm">
+      <li class="flex justify-between">
+        <span>Raspberry Pi 4</span>
+        <span class="text-green-600 font-semibold">Online</span>
+      </li>
+      <li class="flex justify-between">
+        <span>MAX30102</span>
+        <span class="text-green-600 font-semibold">Detectado</span>
+      </li>
+      <li class="flex justify-between">
+        <span>MLX90614</span>
+        <span class="text-green-600 font-semibold">Detectado</span>
+      </li>
+      <li class="flex justify-between">
+        <span>AD8232</span>
+        <span class="text-green-600 font-semibold">Detectado</span>
+      </li>
+      <li class="flex justify-between">
+        <span>MP520N004D</span>
+        <span class="text-red-500 font-semibold">Desconectado</span>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- Panel Principal -->
+  <main class="flex-1 pl-6">
+    <!-- Encabezado del sistema -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6 border-t-4 border-teal-500">
+      <div class="flex justify-between items-start flex-wrap gap-4">
+        <div>
+          <h1 class="text-xl font-bold mb-1">Sistema de Monitoreo Médico</h1>
+          <div class="text-sm space-y-1">
+            <p><strong>Paciente:</strong> Juan Pérez García</p>
+            <p><strong>No. Paciente:</strong> #000023</p>
+            <p><strong>Edad:</strong> 24</p>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <button class="bg-green-500 text-white px-4 py-1 rounded-lg shadow hover:bg-green-600">
+            Monitorear en tiempo real
+          </button>
+          <button class="bg-red-500 text-white px-4 py-1 rounded-lg shadow hover:bg-red-600">
+            Exportar datos
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid de Cards personalizado -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-4">
+  <!-- Fila 1: 2 tarjetas -->
+  <div class="lg:col-span-2">
+    <app-cards
+      icon="❤️"
+      title="Ritmo Cardiaco"
+      subtitle="72 ppm"
+      borderColor="border-green-500"
+    >
+      <div class="bg-gray-200 h-32 mt-4 rounded-lg"></div>
+    </app-cards>
+  </div>
+
+  <div class="lg:col-span-2">
+    <app-cards
+      icon="🩸"
+      title="Saturación de Oxígeno (SpO2)"
+      subtitle="98 %"
+      borderColor="border-green-500"
+    >
+      <div class="bg-gray-200 h-32 mt-4 rounded-lg"></div>
+    </app-cards>
+  </div>
+
+  <!-- Fila 2: 2 tarjetas -->
+  <div class="lg:col-span-2">
+    <app-cards
+      icon="🌡️"
+      title="Temperatura Corporal"
+      subtitle="36.8 °C"
+      borderColor="border-red-500"
+    >
+      <div class="bg-gray-200 h-32 mt-4 rounded-lg"></div>
+    </app-cards>
+  </div>
+
+  <div class="lg:col-span-2">
+    <app-cards
+      icon="🫀"
+      title="Presión Arterial"
+      subtitle="120 mmHg"
+      borderColor="border-green-500"
+    >
+      <div class="bg-gray-200 h-32 mt-4 rounded-lg"></div>
+    </app-cards>
+  </div>
+
+  <!-- Fila 3: 1 tarjeta grande centrada -->
+  <div class="lg:col-span-4">
+    <app-cards
+      icon="📈"
+      title="Electroencefalograma"
+      subtitle="Señal activa"
+      borderColor="border-green-500"
+    >
+      <div class="bg-gray-200 h-32 mt-4 rounded-lg"></div>
+    </app-cards>
+  </div>
+</div>
