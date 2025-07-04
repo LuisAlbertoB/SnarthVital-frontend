@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../auth/auth.service'; 
+import { RegisterModalComponent } from '../../components/register/register.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, RegisterModalComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'] // <-- CORREGIDO
 })
@@ -15,6 +16,7 @@ export class LoginComponent {
   email: string = '';
   password: string = '';
   error: string = '';
+  showRegisterModal = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -29,6 +31,10 @@ export class LoginComponent {
   }
 
   goToRegister(): void {
-    this.router.navigate(['/register']);
+    this.showRegisterModal = true;
+  }
+
+  closeRegisterModal(): void {
+    this.showRegisterModal = false;
   }
 }

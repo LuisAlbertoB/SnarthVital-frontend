@@ -55,62 +55,38 @@
     </div>
 
     <!-- Grid de Cards personalizado -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-4">
-  <!-- Fila 1: 2 tarjetas -->
-  <div class="lg:col-span-2">
-    <app-cards
-      icon="❤️"
-      title="Ritmo Cardiaco"
-      subtitle="72 ppm"
-      borderColor="border-green-500"
-    >
-      <div class="bg-gray-200 h-32 mt-4 rounded-lg"></div>
-    </app-cards>
-  </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-4">
 
-  <div class="lg:col-span-2">
-    <app-cards
-      icon="🩸"
-      title="Saturación de Oxígeno (SpO2)"
-      subtitle="98 %"
-      borderColor="border-green-500"
-    >
-      <div class="bg-gray-200 h-32 mt-4 rounded-lg"></div>
-    </app-cards>
-  </div>
+      <div class="lg:col-span-2">
+        <app-cards icon="❤️" title="Ritmo Cardiaco" subtitle="72 ppm" borderColor="border-green-500">
+          <p-chart type="line" [data]="heartRateData" [options]="lineChartOptions" class="h-32 mt-4 rounded-lg bg-white"></p-chart>
+        </app-cards>
+      </div>
 
-  <!-- Fila 2: 2 tarjetas -->
-  <div class="lg:col-span-2">
-    <app-cards
-      icon="🌡️"
-      title="Temperatura Corporal"
-      subtitle="36.8 °C"
-      borderColor="border-red-500"
-    >
-      <div class="bg-gray-200 h-32 mt-4 rounded-lg"></div>
-    </app-cards>
-  </div>
+      <div class="lg:col-span-2">
+        <app-cards icon="🩸" title="Saturación de Oxígeno (SpO2)" subtitle="98 %" borderColor="border-green-500">
+          <p-chart type="bar" [data]="spo2Data" [options]="barChartOptions" class="h-32 mt-4 rounded-lg bg-white"></p-chart>
+        </app-cards>
+      </div>
 
-  <div class="lg:col-span-2">
-    <app-cards
-      icon="🫀"
-      title="Presión Arterial"
-      subtitle="120 mmHg"
-      borderColor="border-green-500"
-    >
-      <div class="bg-gray-200 h-32 mt-4 rounded-lg"></div>
-    </app-cards>
-  </div>
+      <div class="lg:col-span-2">
+        <app-cards icon="🌡️" title="Temperatura Corporal" subtitle="36.8 °C" borderColor="border-red-500">
+          <p-chart type="line" [data]="temperatureData" [options]="lineChartOptions" class="h-32 mt-4 rounded-lg bg-white"></p-chart>
+        </app-cards>
+      </div>
 
-  <!-- Fila 3: 1 tarjeta grande centrada -->
-  <div class="lg:col-span-4">
-    <app-cards
-      icon="📈"
-      title="Electroencefalograma"
-      subtitle="Señal activa"
-      borderColor="border-green-500"
-    >
-      <div class="bg-gray-200 h-32 mt-4 rounded-lg"></div>
-    </app-cards>
-  </div>
+      <div class="lg:col-span-2">
+        <app-cards icon="🫀" title="Presión Arterial" subtitle="120 mmHg" borderColor="border-green-500">
+          <p-chart type="line" [data]="bloodPressureData" [options]="multiAxisOptions" class="h-32 mt-4 rounded-lg bg-white"></p-chart>
+        </app-cards>
+      </div>
+
+      <div class="lg:col-span-4">
+        <app-cards icon="📈" title="Electroencefalograma" subtitle="Señal activa" borderColor="border-green-500">
+          <p-chart type="line" [data]="eegData" [options]="lineChartOptions" class="h-32 mt-4 rounded-lg bg-white"></p-chart>
+        </app-cards>
+      </div>
+
+    </div>
+  </main>
 </div>

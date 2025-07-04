@@ -9,7 +9,7 @@
 
 .login-box {
   display: flex;
-  background-color: white;
+  background-color: transparent; /* <-- Cambia de white a transparent */
   width: 80%;
   max-width: 900px;
   border-radius: 10px;
@@ -25,6 +25,8 @@
   flex-direction: column;
   justify-content: center;
   color: white;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
 }
 
 .form-section h2 {
@@ -43,6 +45,7 @@
   border: none;
   border-radius: 6px;
   width: 100%;
+  color: #000; /* <-- Asegura texto negro */
 }
 
 .form-section button {
@@ -75,6 +78,8 @@
   justify-content: center;
   align-items: center;
   position: relative;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
 }
 
 .hexagon {
