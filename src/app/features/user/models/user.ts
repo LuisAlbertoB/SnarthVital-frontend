@@ -1,9 +1,10 @@
 export interface User {
   id?: number;
+  access_token?: string;
   name: string;
   lastname: string;
   email: string;
   password: string;
-  profile_picture: string | null; // URL or base64 string for the profile picture
+  profile_picture: string | null; 
   role: 'admin' | 'doctor' | 'patient';
 }
