@@ -1,0 +1,71 @@
+<app-navbar></app-navbar>
+
+<div class="bg-gray-200 h-[calc(100vh-64px)] py-6 px-4 flex gap-4 overflow-hidden">
+  <aside class="w-64 bg-white rounded-lg shadow p-4 h-fit self-start">
+    <h2 class="font-semibold text-sm mb-4">NOVEDADES DE REGISTROS</h2>
+    <ul class="text-sm space-y-2">
+      <li class="flex justify-between">
+        <span>TOTAL DE PACIENTES</span>
+        <span class="font-bold text-green-600">18</span>
+      </li>
+      <li class="flex justify-between">
+        <span>PACIENTES ACTIVOS</span>
+        <span class="font-bold text-green-600">2</span>
+      </li>
+      <li class="flex justify-between">
+        <span>ESTADO CRÍTICO</span>
+        <span class="font-bold text-red-600">5</span>
+      </li>
+      <li class="flex justify-between">
+        <span>DADOS DE ALTA</span>
+        <span class="font-bold text-green-600">4</span>
+      </li>
+    </ul>
+  </aside>
+
+  <main class="flex-1 flex flex-col gap-6 overflow-hidden">
+    
+    <div class="text-center bg-white border-t-4 border-red-500 rounded-lg shadow p-6">
+      <h1 class="text-3xl font-bold mb-1">Historial de pacientes</h1>
+      <p class="text-sm text-gray-700">Resumen general del sistema de monitoreo médico</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 flex-1 flex flex-col overflow-hidden">
+      
+      <!-- Filtros -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <select class="p-2 border rounded text-sm">
+          <option>Todos los estados</option>
+          <option>Activo</option>
+          <option>Crítico</option>
+          <option>Alta</option>
+        </select>
+
+        <input type="date" class="p-2 border rounded text-sm" />
+        <input type="date" class="p-2 border rounded text-sm" />
+
+        <select class="p-2 border rounded text-sm">
+          <option>Todas las estaciones</option>
+        </select>
+      </div>
+
+      <!-- Lista de pacientes con scroll interno -->
+      <div class="overflow-y-auto flex-1 space-y-2 pr-2">
+        <div
+          *ngFor="let patient of patients"
+          class="bg-gray-100 rounded-lg px-4 py-3 flex justify-between items-center"
+        >
+          <div class="flex items-center gap-3">
+            <img src="assets/avatar.png" class="w-10 h-10 rounded-full bg-white" alt="Avatar" />
+            <span class="font-medium text-sm">{{ patient.name }}</span>
+          </div>
+          <div class="flex gap-2 text-gray-600">
+            <button title="Editar"><i class="pi pi-pencil"></i></button>
+            <button title="Eliminar"><i class="pi pi-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

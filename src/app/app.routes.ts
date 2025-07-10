@@ -18,4 +18,8 @@ export const routes: Routes = [
         path: 'panel',
         loadComponent: () => import('./ui/pages/panel/panel.component').then(m => m.PanelComponent)
     },
+    {
+        path: 'history',
+        loadComponent: () => import('./ui/pages/patient-history/patient-history.component').then(m => m.PatientHistoryComponent)
+},
 ];
