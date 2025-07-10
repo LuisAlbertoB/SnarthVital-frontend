@@ -19,4 +19,12 @@ export class UserService {
       }
     });
   }
+
+  getPatients(id: number): Observable<User[]> {
+    return this.http.get<User[]>(`${environment.API_URL}/doctors/${id}/patients`, {
+      headers: {
+        'Authorization': `Bearer ${this.authService.getToken()}`
+      }
+    });
+  }
 }

@@ -14,14 +14,7 @@ import { User } from '../../../features/user/models/user';
 export class RegisterModalComponent {
   @Output() close = new EventEmitter<void>();
 
-  registerData: User = {
-    name: '',
-    lastname: '',
-    email: '',
-    password: '',
-    role: 'patient',
-    profile_picture: null,
-  };
+  registerData!: User
 
   constructor(private authService: AuthService) {}
 

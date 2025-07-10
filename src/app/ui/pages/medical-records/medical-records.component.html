@@ -1,1 +1,63 @@
 <app-navbar></app-navbar>
+<div class="flex flex-col md:flex-row min-h-screen bg-[#e9e3e3]">
+    <!-- Panel lateral -->
+    <aside class="w-full md:w-64 mb-6 md:mb-0 md:mr-6" *ngIf="currentUser.role === 'doctor'">
+        <div class="bg-white rounded-xl shadow p-4 border-t-4 border-red-400 mt-6 md:mt-10 ml-0 md:ml-6">
+            <h2 class="font-bold text-md mb-2">NOVEDADES DE REGISTROS</h2>
+            <div class="space-y-1">
+                <div class="font-bold">TOTAL DE PACIENTES <span class="text-green-600 font-bold block text-lg">18</span>
+                </div>
+                <div class="font-bold">PACIENTES ACTIVOS <span class="text-green-600 font-bold block text-lg">2</span>
+                </div>
+                <div class="font-bold">ESTADO CRITICO <span class="text-red-600 font-bold block text-lg">5</span></div>
+                <div class="font-bold">DADOS DE ALTA <span class="text-green-600 font-bold block text-lg">4</span></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="flex-1 px-2 md:px-0">
+        <!-- Título -->
+        <div class="bg-white rounded-xl shadow p-4 border-t-4 border-red-400 mt-6 md:mt-10 mb-4 max-w-3xl mx-auto">
+            <h1 class="text-3xl font-bold text-center">Historial de Expedientes</h1>
+        </div>
+
+        <!-- Filtros -->
+        <div class="bg-[#d1cbcb] rounded-xl shadow p-4 mb-4 max-w-3xl mx-auto border border-gray-400">
+            <h3 class="font-semibold mb-2">Filtros</h3>
+            <div class="flex flex-col md:flex-row gap-2 md:gap-4">
+                <select class="rounded px-2 py-1 border border-gray-300" *ngIf="currentUser.role === 'doctor'">
+                    <option (click)="getPatients()">Seleccionar paciente</option>
+                </select>
+                <input type="text" placeholder="dd/mm/aaaa" class="rounded px-2 py-1 border border-gray-300" />
+                <input type="text" placeholder="# del expediente"
+                    class="rounded px-2 py-1 border border-gray-300" />
+            </div>
+        </div>
+
+        <!-- Tabla de expedientes -->
+        <div class="bg-white rounded-xl shadow p-4 max-w-3xl mx-auto overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b">
+                        <th class="py-2">#</th>
+                        <th class="py-2" *ngIf="currentUser.role === 'doctor'">Paciente</th>
+                        <th class="py-2">Fecha</th>
+                        <th class="py-2">Descargar</th>
+                        <th class="py-2">Enviar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b" *ngFor="let expediente of records">
+                        <td class="py-2">{{ expediente.id }}</td>
+                        <td class="py-2" *ngIf="currentUser.role === 'doctor'">{{ expediente.patient.name }}</td>
+                        <td class="py-2">{{ expediente.created_at | date: 'dd/MM/yyyy' }}</td>
+                        <td class="py-2 text-center"><i class="pi pi-download"></i></td>
+                        <td class="py-2 text-center"><i class="pi pi-send"></i></td>
+                    </tr>
+                    <!-- Repite para cada expediente -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
