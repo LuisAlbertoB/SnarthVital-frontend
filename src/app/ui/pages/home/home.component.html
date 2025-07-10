@@ -9,25 +9,21 @@
     <p class="text-sm text-gray-700">Resumen general del sistema de monitoreo médico</p>
   </div>
 
-  <!-- Grid de tarjetas -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-10">
-    <app-cards 
-      icon="➕👤"
-      title="AGREGAR PACIENTE"
-      subtitle="Registrar un nuevo paciente"
-      borderColor="border-green-500"
-    />
-    <app-cards 
-      icon="👥"
-      title="TOTAL DE PACIENTES"
-      subtitle="4 esta semana"
-      borderColor="border-blue-500"
-    />
-    <app-cards
-      icon="📊"
-      title="REPORTES"
-      subtitle="Ver reportes y estadísticas"
-      borderColor="border-red-500"
-    />
+  <!-- Grid de tarjetas para admin y doctor-->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-10"
+    *ngIf="currentUser.role === 'admin' || currentUser.role === 'doctor'">
+    <app-cards icon="➕👤" title="AGREGAR PACIENTE" subtitle="Registrar un nuevo paciente"
+      borderColor="border-green-500" />
+    <app-cards icon="👥" title="TOTAL DE PACIENTES" subtitle="4 esta semana" borderColor="border-blue-500" />
+    <app-cards icon="📊" title="REPORTES" subtitle="Ver reportes y estadísticas" borderColor="border-red-500" />
+  </div>
+  <!-- Grid de tarjetas para paciente -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto mt-10" *ngIf="currentUser.role === 'patient'">
+    <a routerLink="/records">
+      <app-cards icon="📊" title="EXPEDIENTES" subtitle="Ver mis expedientes" borderColor="border-red-500" />
+    </a>
+    <a routerLink="/panel">
+      <app-cards icon="📊" title="MEDICIÓN" subtitle="Ver medición en tiempo real" borderColor="border-red-500" />
+    </a>
   </div>
 </div>

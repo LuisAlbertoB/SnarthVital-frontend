@@ -9,7 +9,6 @@ import { SidebarModule } from 'primeng/sidebar';
 import { ButtonModule } from 'primeng/button';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
-
 @Component({
   selector: 'app-navbar',
   standalone: true,
@@ -20,14 +19,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 export class NavbarComponent implements OnInit {
   menuOpen = false;
   sidebarVisible = false;
-  user: User = {
-    name: '',
-    lastname: '',
-    email: '',
-    password: '',
-    profile_picture: null,
-    role: 'patient'
-  };
+  user!: User
   search: string = '';
 
   constructor(
@@ -74,13 +66,6 @@ export class NavbarComponent implements OnInit {
   }
 
   @Output() searchEvent = new EventEmitter<string>();
-
-  goProfile() {
-    // Redirige al perfil del usuario (ajusta la ruta si es necesario)
-    this.router.navigate([`/profile/${this.user.id}`]);
-    this.menuOpen = false;
-    this.sidebarVisible = false;
-  }
 
   editProfile() {
     this.router.navigate(['/editprofile']);
