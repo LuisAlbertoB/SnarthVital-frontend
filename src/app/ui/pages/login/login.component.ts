@@ -24,7 +24,7 @@ export class LoginComponent {
   login(): void {
     this.authService.login({ email: this.email, password: this.password }).subscribe({
       next: (user : User) => {
-        this.authService.setUser(user);
+        this.authService.setUser(user);        
         this.router.navigate(['/home']);
       },
       error: err => {

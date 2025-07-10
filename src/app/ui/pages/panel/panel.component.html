@@ -9,25 +9,72 @@
     <ul class="space-y-2 text-sm">
       <li class="flex justify-between">
         <span>Raspberry Pi 4</span>
-        <span class="text-green-600 font-semibold">Online</span>
+        <span [ngClass]="sensorStatus?.raspberry ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold'">
+          {{ sensorStatus?.raspberry ? 'Online' : 'Offline' }}
+        </span>
       </li>
       <li class="flex justify-between">
         <span>MAX30102</span>
-        <span class="text-green-600 font-semibold">Detectado</span>
+        <span [ngClass]="sensorStatus?.MAX30102 ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold'">
+          {{ sensorStatus?.MAX30102 ? 'Detectado' : 'Desconectado' }}
+        </span>
       </li>
       <li class="flex justify-between">
         <span>MLX90614</span>
-        <span class="text-green-600 font-semibold">Detectado</span>
+        <span [ngClass]="sensorStatus?.MLX90614 ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold'">
+          {{ sensorStatus?.MLX90614 ? 'Detectado' : 'Desconectado' }}
+        </span>
       </li>
       <li class="flex justify-between">
         <span>AD8232</span>
-        <span class="text-green-600 font-semibold">Detectado</span>
+        <span [ngClass]="sensorStatus?.ADB8232 ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold'">
+          {{ sensorStatus?.ADB8232 ? 'Detectado' : 'Desconectado' }}
+        </span>
       </li>
       <li class="flex justify-between">
         <span>MP520N004D</span>
-        <span class="text-red-500 font-semibold">Desconectado</span>
+        <span [ngClass]="sensorStatus?.MP520N004D ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold'">
+          {{ sensorStatus?.MP520N004D ? 'Detectado' : 'Desconectado' }}
+        </span>
       </li>
     </ul>
+
+    <!-- Estado de WebSocket -->
+    <div class="mt-6 p-3 bg-gray-50 rounded-lg">
+      <h3 class="font-semibold mb-2">Estado de Conexión</h3>
+      <div class="flex items-center space-x-2">
+        <div class="w-3 h-3 rounded-full" [class]="isConnected ? 'bg-green-500' : 'bg-red-500'"></div>
+        <span class="text-sm">{{ isConnected ? 'Conectado' : 'Desconectado' }}</span>
+      </div>
+
+      <!-- Botones de control -->
+      <div class="mt-3 space-y-2">
+        <button (click)="startMonitoring()" [disabled]="!isConnected || isMonitoring"
+          class="w-full bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
+          {{ isMonitoring ? 'Monitoreando...' : 'Iniciar Monitoreo' }}
+        </button>
+        <button (click)="stopMonitoring()" [disabled]="!isConnected || !isMonitoring"
+          class="w-full bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
+          Detener Monitoreo
+        </button>
+      </div>
+    </div>
+
+    <!-- Alertas -->
+    <div class="mt-4" *ngIf="alerts.length > 0">
+      <h3 class="font-semibold mb-2 text-red-600">Alertas ({{ alerts.length }})</h3>
+      <div class="space-y-2 max-h-40 overflow-y-auto">
+        <div *ngFor="let alert of alerts" class="p-2 bg-red-100 border border-red-300 rounded text-xs">
+          <div *ngFor="let alerta of alert.alertas" class="text-red-700">
+            {{ alerta }}
+          </div>
+        </div>
+      </div>
+      <button (click)="clearAlerts()"
+        class="mt-2 w-full bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">
+        Limpiar Alertas
+      </button>
+    </div>
   </aside>
 
   <!-- Panel Principal -->
@@ -38,14 +85,15 @@
         <div>
           <h1 class="text-xl font-bold mb-1">Sistema de Monitoreo Médico</h1>
           <div class="text-sm space-y-1">
-            <p><strong>Paciente:</strong> Juan Pérez García</p>
-            <p><strong>No. Paciente:</strong> #000023</p>
+            <p><strong>Paciente:</strong> {{currentUser.name}} {{currentUser.lastname}}</p>
+            <p><strong>No. Paciente:</strong> #{{ currentPatientId }}</p>
             <p><strong>Edad:</strong> 24</p>
           </div>
         </div>
         <div class="flex flex-col gap-2">
-          <button class="bg-green-500 text-white px-4 py-1 rounded-lg shadow hover:bg-green-600">
-            Monitorear en tiempo real
+          <button (click)="startMonitoring()" [disabled]="!isConnected || isMonitoring"
+            class="bg-green-500 text-white px-4 py-1 rounded-lg shadow hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
+            {{ isMonitoring ? 'Monitoreando en tiempo real' : 'Monitorear en tiempo real' }}
           </button>
           <button class="bg-red-500 text-white px-4 py-1 rounded-lg shadow hover:bg-red-600">
             Exportar datos
@@ -58,32 +106,42 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-4">
 
       <div class="lg:col-span-2">
-        <app-cards icon="❤️" title="Ritmo Cardiaco" subtitle="72 ppm" borderColor="border-green-500">
-          <p-chart type="line" [data]="heartRateData" [options]="lineChartOptions" class="h-32 mt-4 rounded-lg bg-white"></p-chart>
+        <app-cards icon="❤️" title="Ritmo Cardiaco" [subtitle]="realTimeData.heartRate + ' ppm'"
+          borderColor="border-green-500">
+          <p-chart type="line" [data]="heartRateData" [options]="lineChartOptions"
+            class="h-32 mt-4 rounded-lg bg-white"></p-chart>
         </app-cards>
       </div>
 
       <div class="lg:col-span-2">
-        <app-cards icon="🩸" title="Saturación de Oxígeno (SpO2)" subtitle="98 %" borderColor="border-green-500">
-          <p-chart type="bar" [data]="spo2Data" [options]="barChartOptions" class="h-32 mt-4 rounded-lg bg-white"></p-chart>
+        <app-cards icon="🩸" title="Saturación de Oxígeno (SpO2)" [subtitle]="realTimeData.spo2 + ' %'"
+          borderColor="border-green-500">
+          <p-chart type="bar" [data]="spo2Data" [options]="barChartOptions"
+            class="h-32 mt-4 rounded-lg bg-white"></p-chart>
         </app-cards>
       </div>
 
       <div class="lg:col-span-2">
-        <app-cards icon="🌡️" title="Temperatura Corporal" subtitle="36.8 °C" borderColor="border-red-500">
-          <p-chart type="line" [data]="temperatureData" [options]="lineChartOptions" class="h-32 mt-4 rounded-lg bg-white"></p-chart>
+        <app-cards icon="🌡️" title="Temperatura Corporal" [subtitle]="realTimeData.temperature + ' °C'"
+          borderColor="border-red-500">
+          <p-chart type="line" [data]="temperatureData" [options]="lineChartOptions"
+            class="h-32 mt-4 rounded-lg bg-white"></p-chart>
         </app-cards>
       </div>
 
       <div class="lg:col-span-2">
-        <app-cards icon="🫀" title="Presión Arterial" subtitle="120 mmHg" borderColor="border-green-500">
-          <p-chart type="line" [data]="bloodPressureData" [options]="multiAxisOptions" class="h-32 mt-4 rounded-lg bg-white"></p-chart>
+        <app-cards icon="🫀" title="Presión Arterial"
+          [subtitle]="realTimeData.bloodPressure.systolic + '/' + realTimeData.bloodPressure.diastolic + ' mmHg'"
+          borderColor="border-green-500">
+          <p-chart type="line" [data]="bloodPressureData" [options]="multiAxisOptions"
+            class="h-32 mt-4 rounded-lg bg-white"></p-chart>
         </app-cards>
       </div>
 
       <div class="lg:col-span-4">
         <app-cards icon="📈" title="Electroencefalograma" subtitle="Señal activa" borderColor="border-green-500">
-          <p-chart type="line" [data]="eegData" [options]="lineChartOptions" class="h-32 mt-4 rounded-lg bg-white"></p-chart>
+          <p-chart type="line" [data]="eegData" [options]="lineChartOptions"
+            class="h-32 mt-4 rounded-lg bg-white"></p-chart>
         </app-cards>
       </div>
 
