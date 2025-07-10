@@ -1,0 +1,18 @@
+select,
+input[type="date"] {
+  background-color: #fff;
+  width: 100%;
+}
+
+.pi {
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.pi-pencil:hover {
+  color: #0c71a3;
+}
+
+.pi-trash:hover {
+  color: #e53935;
+}
