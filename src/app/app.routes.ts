@@ -4,13 +4,15 @@ import { HomeComponent } from './ui/pages/home/home.component';
 import { PanelComponent } from './ui/pages/panel/panel.component';
 import { MedicalRecordsComponent } from './ui/pages/medical-records/medical-records.component';
 import { PatientHistoryComponent } from './ui/pages/patient-history/patient-history.component';
+import {CreatePacienteComponent} from './ui/pages/create-paciente/create-paciente.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
   { path: 'home', component: HomeComponent },
   { path: 'panel', component: PanelComponent },
   { path: 'records', component: MedicalRecordsComponent },
-  {path: 'history', component: PatientHistoryComponent },
+  { path: 'history', component: PatientHistoryComponent },
+  { path: 'createPaciente', component: CreatePacienteComponent},
   
   {
     path: '',
@@ -33,4 +35,8 @@ export const routes: Routes = [
         path: 'history',
         loadComponent: () => import('./ui/pages/patient-history/patient-history.component').then(m => m.PatientHistoryComponent)
 },
+  {    path: 'createPaciente', 
+       loadComponent: () => import('./ui/pages/create-paciente/create-paciente.component').then(m => m.CreatePacienteComponent)
+
+   },
 ];
