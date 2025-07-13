@@ -10,11 +10,15 @@ import { SensorData } from '../../../features/sensor/models/sensorData';
 import { AlertData } from '../../../features/sensor/models/alert-data';
 import { WebSocketMessage } from '../../../features/sensor/models/websocket-message';
 import { User } from '../../../features/user/models/user';
+import { UserService } from '../../../features/user/user.service';
+import { FormsModule } from '@angular/forms';
+import { SelectModule } from 'primeng/select';
+
 
 @Component({
   selector: 'app-panel',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, CardsComponent, ChartModule],
+  imports: [CommonModule, NavbarComponent, CardsComponent, ChartModule, SelectModule, FormsModule],
   templateUrl: './panel.component.html',
   styleUrls: ['./panel.component.css']
 })
@@ -23,9 +27,20 @@ export class PanelComponent implements OnInit, OnDestroy {
   currentUser = {} as User
   isConnected = false;
   isMonitoring = false;
-  currentPatientId: number = 0;
+  currentUserId: number = 0;
   alerts: AlertData[] = [];
   sensorStatus: any = null;
+  patients: User[] = [];
+  patientOptions: any[] = [];
+  selectedPatient: any; // Changed to any to accommodate primeng select options
+
+  // Propiedad para controlar si el botón de monitoreo está habilitado
+  get canStartMonitoring(): boolean {
+    if (this.currentUser.role === 'doctor') {
+      return this.isConnected && !this.isMonitoring && !!this.selectedPatient;
+    }
+    return this.isConnected && !this.isMonitoring;
+  }
 
   // Datos en tiempo real (inicialmente vacíos)
   realTimeData = {
@@ -173,16 +188,39 @@ export class PanelComponent implements OnInit, OnDestroy {
 
   constructor(
     private websocketService: WebsocketService,
-    private authService: AuthService
+    private authService: AuthService,
+    private userService: UserService
   ) { }
 
   ngOnInit() {
-    this.currentPatientId = this.authService.getUser()?.id || 0;
-    if (!this.currentPatientId) {
+    this.currentUserId = this.authService.getUser()?.id || 0;
+    if (!this.currentUserId) {
       console.error('No se pudo obtener el ID del paciente actual');
       return;
     }
+
     this.currentUser = this.authService.getUser() || {} as User;
+
+    // Obtener pacientes si el usuario es doctor
+    if (this.currentUser.role === 'doctor' && this.currentUser.id !== undefined) {
+      this.userService.getPatients(this.currentUser.id).subscribe({
+        next: (data) => {
+          console.log('Pacientes recibidos del backend:', data);
+          this.patients = data;
+          this.patientOptions = data.map(patient => {
+            console.log('Procesando paciente:', patient);
+            return {
+              label: `${patient.name} ${patient.lastname}`,
+              value: patient
+            };
+          });
+          console.log('patientOptions creado:', this.patientOptions);
+        },
+        error: (error) => {
+          console.error('Error fetching patients:', error);
+        }
+      });
+    }
     // Conectar al WebSocket
     this.websocketService.connect();
 
@@ -211,9 +249,28 @@ export class PanelComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.websocketService.alerts$.subscribe(
         (alert: AlertData) => {
-          this.alerts.push(alert);
-          console.log('Nueva alerta recibida:', alert);
-          // Aquí puedes mostrar una notificación o toast
+          // Obtener el ID del usuario actual
+          const currentUserId = this.currentUser.id;
+
+          // Determinar el ID del paciente que debe recibir las alertas
+          let targetPatientId = currentUserId;
+
+          // Si es doctor y tiene un paciente seleccionado, usar el ID del paciente seleccionado
+          if (this.currentUser.role === 'doctor' && this.selectedPatient) {
+            const patient = this.selectedPatient.value || this.selectedPatient;
+            if (patient && patient.id) {
+              targetPatientId = patient.id;
+            }
+          }
+
+          // Solo procesar alertas que correspondan al usuario actual o al paciente monitoreado
+          if (alert.patient_id === targetPatientId || alert.doctor_id === currentUserId) {
+            this.alerts.push(alert);
+            console.log('Nueva alerta recibida:', alert);
+          } else {
+            console.log(`Alerta ignorada - No corresponde al usuario actual (${currentUserId}) o paciente monitoreado (${targetPatientId})`);
+            console.log(`Alerta recibida: patient_id=${alert.patient_id}, doctor_id=${alert.doctor_id}`);
+          }
         }
       )
     );
@@ -247,8 +304,36 @@ export class PanelComponent implements OnInit, OnDestroy {
 
   startMonitoring() {
     if (this.isConnected) {
-      this.websocketService.startMeasurement(this.currentPatientId);
-      console.log('Monitoreo iniciado');
+      let patientIdToMonitor = this.currentUserId;
+
+      // Si es doctor y tiene un paciente seleccionado, usar el ID del paciente
+      if (this.currentUser.role === 'doctor') {
+        if (!this.selectedPatient) {
+          console.error('Error: El doctor debe seleccionar un paciente antes de iniciar el monitoreo');
+          alert('Por favor, selecciona un paciente antes de iniciar el monitoreo');
+          return;
+        }
+
+        console.log('selectedPatient completo:', this.selectedPatient);
+
+        // El selectedPatient contiene el objeto option completo, necesitamos acceder al value
+        const patient = this.selectedPatient.value || this.selectedPatient;
+        console.log('Paciente extraído:', patient);
+        console.log('Paciente ID:', patient.id);
+        console.log('Paciente name:', patient.name);
+
+        if (patient && patient.id) {
+          patientIdToMonitor = patient.id;
+          console.log('Monitoreando paciente:', patient.name, 'ID:', patientIdToMonitor);
+        } else {
+          console.error('Error: El paciente seleccionado no tiene ID definido');
+          alert('Error: El paciente seleccionado no tiene ID válido');
+          return;
+        }
+      }
+
+      this.websocketService.startMeasurement(patientIdToMonitor);
+      console.log('Monitoreo iniciado para paciente ID:', patientIdToMonitor);
     } else {
       console.error('WebSocket no está conectado');
     }
@@ -256,8 +341,18 @@ export class PanelComponent implements OnInit, OnDestroy {
 
   stopMonitoring() {
     if (this.isConnected) {
-      this.websocketService.stopMeasurement(this.currentPatientId);
-      console.log('Monitoreo detenido');
+      let patientIdToStop = this.currentUserId;
+
+      // Si es doctor y tiene un paciente seleccionado, usar el ID del paciente
+      if (this.currentUser.role === 'doctor' && this.selectedPatient) {
+        const patient = this.selectedPatient.value || this.selectedPatient;
+        if (patient && patient.id) {
+          patientIdToStop = patient.id;
+        }
+      }
+
+      this.websocketService.stopMeasurement(patientIdToStop);
+      console.log('Monitoreo detenido para paciente ID:', patientIdToStop);
     } else {
       console.error('WebSocket no está conectado');
     }
@@ -265,6 +360,34 @@ export class PanelComponent implements OnInit, OnDestroy {
 
   private updateRealTimeData(sensorData: SensorData) {
     const data = sensorData.data;
+
+    // Obtener el ID del usuario actual
+    const currentUserId = this.currentUser.id;
+
+    // Determinar el ID del paciente que debe recibir los datos
+    let targetPatientId = currentUserId;
+
+    // Si es doctor y tiene un paciente seleccionado, usar el ID del paciente seleccionado
+    if (this.currentUser.role === 'doctor' && this.selectedPatient) {
+      const patient = this.selectedPatient.value || this.selectedPatient;
+      if (patient && patient.id) {
+        targetPatientId = patient.id;
+      }
+    }
+
+    // Verificar si los datos corresponden al usuario actual o al paciente que está monitoreando
+    const dataPatientId = data.patient_id;
+    const dataDoctorId = data.doctor_id;
+
+    // Solo procesar si los datos corresponden al usuario actual o al paciente monitoreado
+    if (dataPatientId !== targetPatientId && dataDoctorId !== currentUserId) {
+      console.log(`Datos ignorados - No corresponden al usuario actual (${currentUserId}) o paciente monitoreado (${targetPatientId})`);
+      console.log(`Datos recibidos: patient_id=${dataPatientId}, doctor_id=${dataDoctorId}`);
+      return;
+    }
+
+    console.log(`Procesando datos para usuario ${currentUserId}, paciente monitoreado ${targetPatientId}`);
+    console.log(`Datos válidos: patient_id=${dataPatientId}, doctor_id=${dataDoctorId}`);
 
     switch (sensorData.topic) {
       case 'temperatura':
@@ -391,6 +514,86 @@ export class PanelComponent implements OnInit, OnDestroy {
 
   clearAlerts() {
     this.alerts = [];
+  }
+
+  onPatientSelectionChange() {
+    if (this.selectedPatient && this.currentUser.role === 'doctor') {
+      console.log('Paciente seleccionado:', this.selectedPatient);
+      const patient = this.selectedPatient.value || this.selectedPatient;
+      console.log('ID del paciente seleccionado:', patient.id);
+
+      // Limpiar todos los datos al cambiar de paciente
+      this.clearAllData();
+
+      // La configuración se enviará cuando se inicie el monitoreo
+    }
+  }
+
+  clearAllData() {
+    console.log('Limpiando todos los datos...');
+
+    // Limpiar datos en tiempo real
+    this.realTimeData = {
+      heartRate: null,
+      spo2: null,
+      temperature: null,
+      bloodPressure: { systolic: null, diastolic: null }
+    };
+
+    // Limpiar datos de gráficos
+    this.heartRateData = {
+      labels: [],
+      datasets: [{
+        label: 'ppm',
+        data: [],
+        borderColor: '#EC407A',
+        fill: false,
+        tension: 0.4
+      }]
+    };
+
+    this.spo2Data = {
+      labels: [],
+      datasets: [{
+        label: 'SpO2 %',
+        backgroundColor: '#42A5F5',
+        data: []
+      }]
+    };
+
+    this.temperatureData = {
+      labels: [],
+      datasets: [{
+        label: '°C',
+        data: [],
+        borderColor: '#FFA726',
+        fill: false,
+        tension: 0.4
+      }]
+    };
+
+    this.bloodPressureData = {
+      labels: [],
+      datasets: [
+        {
+          label: 'Sistólica',
+          borderColor: '#66BB6A',
+          data: [],
+          fill: false
+        },
+        {
+          label: 'Diastólica',
+          borderColor: '#FF7043',
+          data: [],
+          fill: false
+        }
+      ]
+    };
+
+    // Limpiar alertas
+    this.alerts = [];
+
+    console.log('Datos limpiados correctamente');
   }
 }
 
