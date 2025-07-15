@@ -4,6 +4,7 @@ import { AuthService } from '../../auth/auth.service';
 import { Record } from './models/record';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { RecordWithRisks } from './models/record-with-risks';
 
 @Injectable({
   providedIn: 'root'
@@ -87,6 +88,14 @@ export class MedicalRecordService {
         startDate: startDate,
         endDate: endDate
       },
+      headers: {
+        'Authorization': `Bearer ${this.authService.getToken()}`
+      }
+    });
+  }
+
+  getMedicalRecordWithRisks(id: number): Observable<RecordWithRisks> {
+    return this.http.get<RecordWithRisks>(`${this.apiUrl}/medicalRecords/${id}`, {
       headers: {
         'Authorization': `Bearer ${this.authService.getToken()}`
       }

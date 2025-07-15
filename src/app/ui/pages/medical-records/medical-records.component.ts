@@ -12,6 +12,7 @@ import { UserService } from '../../../features/user/user.service';
 import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-medical-records',
@@ -24,7 +25,8 @@ import { DatePickerModule } from 'primeng/datepicker';
     ButtonModule,
     FormsModule,
     DatePickerModule,
-    SelectModule
+    SelectModule,
+    RouterModule
   ],
   templateUrl: './medical-records.component.html',
   styleUrl: './medical-records.component.css'
