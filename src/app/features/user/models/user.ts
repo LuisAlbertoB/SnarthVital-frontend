@@ -5,7 +5,7 @@ export interface User {
   lastname: string;
   email: string;
   password: string;
-  profile_picture: string; 
+  profile_picture: string;
   role: 'admin' | 'doctor' | 'patient';
-  age: number;
+  age?: number;
 }

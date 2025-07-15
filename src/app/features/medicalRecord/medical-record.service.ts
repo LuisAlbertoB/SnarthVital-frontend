@@ -32,8 +32,8 @@ export class MedicalRecordService {
   getPatientMedicalRecordsByRange(patient_id: number, startDate: string, endDate: string): Observable<Record[]> {
     return this.http.get<Record[]>(`${this.apiUrl}/patients/${patient_id}/medicalRecords/range`, {
       params: {
-        startDate: startDate,
-        endDate: endDate
+        start_date: startDate,
+        end_date: endDate
       },
       headers: {
         'Authorization': `Bearer ${this.authService.getToken()}`

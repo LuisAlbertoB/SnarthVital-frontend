@@ -29,7 +29,7 @@ export class CreatePacienteComponent implements OnInit {
     age: 0
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   ngOnInit() {
     this.obtenerPacientesDesdeAPI();
@@ -53,7 +53,7 @@ export class CreatePacienteComponent implements OnInit {
     formData.append('email', this.nuevoPaciente.email);
     formData.append('password', this.nuevoPaciente.password);
     formData.append('role', this.nuevoPaciente.role);
-    formData.append('age', this.nuevoPaciente.age.toString());
+    formData.append('age', (this.nuevoPaciente.age || 0).toString());
 
     if (this.archivoSeleccionado) {
       formData.append('profile_picture', this.archivoSeleccionado);

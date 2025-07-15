@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { User } from '../features/user/models/user';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -11,10 +11,14 @@ export class AuthService {
   private isLoggedIn = false;
   private options = {
     headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-  }
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
   };
+
+  // BehaviorSubject para manejar los datos del usuario
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) { }
 
@@ -31,6 +35,8 @@ export class AuthService {
     this.setLoggedIn(true);
     this.setToken(user.access_token ?? '');
     this.user = user;
+    // Emitir el usuario actual
+    this.currentUserSubject.next(user);
   }
 
   getUser(): User {
@@ -40,10 +46,26 @@ export class AuthService {
     const user = localStorage.getItem('user');
     if (user) {
       this.user = JSON.parse(user);
+      // Emitir el usuario actual si no se ha hecho antes
+      if (!this.currentUserSubject.value) {
+        this.currentUserSubject.next(this.user);
+      }
       return this.user;
     }
 
     return {} as User; // Return an empty User object if no user is found
+  }
+
+  // Método para actualizar los datos del usuario
+  updateUserData(updatedUser: User): void {
+    this.user = updatedUser;
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    this.currentUserSubject.next(updatedUser);
+  }
+
+  // Método para obtener el usuario actual sin hacer llamada al servicio
+  getCurrentUser(): User | null {
+    return this.currentUserSubject.value;
   }
 
   isLogged(): boolean {
@@ -58,6 +80,8 @@ export class AuthService {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     this.setLoggedIn(false);
+    // Limpiar el usuario actual
+    this.currentUserSubject.next(null);
   }
 
   setToken(token: string): void {

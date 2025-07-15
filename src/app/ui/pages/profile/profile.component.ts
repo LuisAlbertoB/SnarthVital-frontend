@@ -13,6 +13,8 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { User } from '../../../features/user/models/user';
+import { AuthService } from '../../../auth/auth.service';
+import { UserService } from '../../../features/user/user.service';
 
 @Component({
   selector: 'app-profile',
@@ -36,7 +38,7 @@ export class ProfileComponent implements OnInit {
   profileForm!: FormGroup;
   currentUser: User | null = null;
   profileImageUrl: string = '';
-  
+
   roleOptions = [
     { label: 'Administrador', value: 'admin' },
     { label: 'Doctor', value: 'doctor' },
@@ -45,8 +47,10 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private messageService: MessageService
-  ) {}
+    private messageService: MessageService,
+    private authService: AuthService,
+    private userService: UserService
+  ) { }
 
   ngOnInit() {
     this.initializeForm();
@@ -63,17 +67,8 @@ export class ProfileComponent implements OnInit {
   }
 
   loadUserData() {
-    // Simular carga de datos del usuario
-    // En una aplicación real, esto vendría de un servicio
-    this.currentUser = {
-      id: 1,
-      name: 'Juan',
-      lastname: 'Pérez',
-      email: 'juan.perez@example.com',
-      password: '',
-      profile_picture: '/assets/default-avatar.png',
-      role: 'patient'
-    };
+    // Obtener datos del usuario actual desde el AuthService
+    this.currentUser = this.authService.getCurrentUser();
 
     if (this.currentUser) {
       this.profileForm.patchValue({
@@ -83,6 +78,27 @@ export class ProfileComponent implements OnInit {
         role: this.currentUser.role
       });
       this.profileImageUrl = this.currentUser.profile_picture;
+    } else {
+      // Fallback: cargar datos básicos del AuthService
+      const userData = this.authService.getUser();
+      if (userData && userData.id) {
+        this.userService.getUser(userData.id).subscribe({
+          next: (data: User) => {
+            this.currentUser = data;
+            this.authService.updateUserData(data);
+            this.profileForm.patchValue({
+              name: data.name,
+              lastname: data.lastname,
+              email: data.email,
+              role: data.role
+            });
+            this.profileImageUrl = data.profile_picture;
+          },
+          error: (err) => {
+            console.error('Error al cargar datos del usuario:', err);
+          }
+        });
+      }
     }
   }
 
@@ -94,7 +110,7 @@ export class ProfileComponent implements OnInit {
         this.profileImageUrl = e.target.result;
       };
       reader.readAsDataURL(file);
-      
+
       this.messageService.add({
         severity: 'success',
         summary: 'Imagen seleccionada',
@@ -104,7 +120,7 @@ export class ProfileComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.profileForm.valid) {
+    if (this.profileForm.valid && this.currentUser) {
       const formData = this.profileForm.value;
       const updatedUser: User = {
         ...this.currentUser,
@@ -114,7 +130,10 @@ export class ProfileComponent implements OnInit {
 
       // Aquí iría la lógica para actualizar el usuario en el backend
       console.log('Usuario actualizado:', updatedUser);
-      
+
+      // Actualizar el AuthService con los nuevos datos
+      this.authService.updateUserData(updatedUser);
+
       this.messageService.add({
         severity: 'success',
         summary: 'Perfil actualizado',

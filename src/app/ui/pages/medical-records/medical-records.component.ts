@@ -10,22 +10,22 @@ import { Record } from '../../../features/medicalRecord/models/record';
 import { MedicalRecordService } from '../../../features/medicalRecord/medical-record.service';
 import { UserService } from '../../../features/user/user.service';
 import { FormsModule } from '@angular/forms';
-import { CalendarModule } from 'primeng/calendar';
 import { SelectModule } from 'primeng/select';
+import { DatePickerModule } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-medical-records',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     NavbarComponent,
     InputTextModule,
     TableModule,
     ButtonModule,
     FormsModule,
-    CalendarModule,
+    DatePickerModule,
     SelectModule
-  ], 
+  ],
   templateUrl: './medical-records.component.html',
   styleUrl: './medical-records.component.css'
 })
@@ -39,8 +39,8 @@ export class MedicalRecordsComponent implements OnInit {
   patientOptions: any[] = [];
 
   constructor(
-    private authService: AuthService, 
-    private recordService: MedicalRecordService, 
+    private authService: AuthService,
+    private recordService: MedicalRecordService,
     private userService: UserService
   ) { }
 
@@ -105,11 +105,56 @@ export class MedicalRecordsComponent implements OnInit {
   }
 
   applyFilters(): void {
-    // Implementar lógica para filtrar registros según los criterios seleccionados
-    console.log('Filtros aplicados:', {
-      paciente: this.selectedPatient,
-      fechas: this.rangeDates,
-      expediente: this.recordNumber
-    });
+    // Si hay al menos una fecha seleccionada
+    if (this.rangeDates && this.rangeDates.length > 0 && this.rangeDates[0]) {
+      // Si solo hay una fecha, usa la misma para inicio y fin
+      const startDate = this.rangeDates[0].toISOString().split('T')[0];
+      const endDate = (this.rangeDates[1] ? this.rangeDates[1] : this.rangeDates[0]).toISOString().split('T')[0];
+
+      if (this.currentUser.role === 'doctor') {
+        const doctorId = this.currentUser.id!;
+        let patientId = this.selectedPatient?.id!;
+
+        if (patientId) {
+          this.recordService.getPatientMedicalRecordsByRange(patientId, startDate, endDate).subscribe({
+            next: (data) => {
+              this.records = this.filterByRecordNumber(data);
+            },
+            error: (error) => {
+              console.error('Error filtrando por paciente y rango:', error);
+            }
+          });
+        } else {
+          this.recordService.getDoctorMedicalRecordsByRange(doctorId, startDate, endDate).subscribe({
+            next: (data) => {
+              this.records = this.filterByRecordNumber(data);
+            },
+            error: (error) => {
+              console.error('Error filtrando por doctor y rango:', error);
+            }
+          });
+        }
+      } else if (this.currentUser.role === 'patient') {
+        const patientId = this.currentUser.id!;
+        this.recordService.getPatientMedicalRecordsByRange(patientId, startDate, endDate).subscribe({
+          next: (data) => {
+            this.records = this.filterByRecordNumber(data);
+          },
+          error: (error) => {
+            console.error('Error filtrando por paciente y rango:', error);
+          }
+        });
+      }
+    } else if (this.recordNumber) {
+      this.records = this.filterByRecordNumber(this.records);
+    } else {
+      this.getRecords();
+    }
+  }
+
+  // Método auxiliar para filtrar por número de expediente
+  filterByRecordNumber(records: Record[]): Record[] {
+    if (!this.recordNumber) return records;
+    return records.filter(record => record.id.toString().includes(this.recordNumber));
   }
 }
