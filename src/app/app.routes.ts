@@ -8,15 +8,17 @@ import { ProfileComponent } from './ui/pages/profile/profile.component';
 import { CreatePacienteComponent } from './ui/pages/create-paciente/create-paciente.component';
 import { RecordComponent } from './ui/pages/record/record.component';
 import { StadisticsComponent } from './ui/pages/stadistics/stadistics.component';
+import { authGuard } from './auth/auth.guard';
+
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
-  { path: 'home', component: HomeComponent },
-  { path: 'panel', component: PanelComponent },
-  { path: 'records', component: MedicalRecordsComponent },
-  { path: 'history', component: PatientHistoryComponent },
-  { path: 'profile', component: ProfileComponent },
-  { path: 'createPaciente', component: CreatePacienteComponent },
-  { path: 'record/:id', component: RecordComponent },
-  { path: 'stadistics', component: StadisticsComponent },
+  { path: 'home', component: HomeComponent, canActivate: [authGuard]},
+  { path: 'panel', component: PanelComponent, canActivate: [authGuard]},
+  { path: 'records', component: MedicalRecordsComponent, canActivate: [authGuard] },
+  { path: 'history', component: PatientHistoryComponent, canActivate: [authGuard] },
+  { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
+  { path: 'createPaciente', component: CreatePacienteComponent, canActivate: [authGuard] },
+  { path: 'record/:id', component: RecordComponent, canActivate: [authGuard] },
+  { path: 'stadistics', component: StadisticsComponent, canActivate: [authGuard] },
 ];
