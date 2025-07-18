@@ -1,105 +1,25 @@
+/* Estilos específicos para recrear el diseño de la imagen */
 :host {
   display: block;
-  height: 100vh;
-  background-color: #4695BD;
 }
 
-.container {
-  background-color: #4695BD;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* Ajustes para el corte diagonal */
+.diagonal-cut {
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
 }
 
-.login-box {
-  display: flex;
-  background-color: transparent; /* <-- Cambia de white a transparent */
-  width: 80%;
-  max-width: 900px;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-}
-
-.form-section {
-  background-color: #0C71A3;
-  flex: 1;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  color: white;
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
-}
-
-.form-section h2 {
-  margin-bottom: 20px;
-  font-size: 28px;
-}
-
-.form-section label {
-  margin-top: 10px;
-  font-weight: 500;
-}
-
-.form-section input {
-  margin-top: 5px;
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  width: 100%;
-  color: #000; /* <-- Asegura texto negro */
-}
-
-.form-section button {
-  margin-top: 20px;
-  padding: 10px;
-  background-color: white;
-  color: #0C71A3;
-  font-weight: bold;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.form-section a {
-  margin-top: 15px;
-  color: #ffffff;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.error {
-  margin-top: 10px;
-  color: #ffc0c0;
-}
-
-.image-section {
-  background-color: #28749A;
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
-.hexagon {
-  width: 250px;
-  text-align: center;
-}
-
-.hexagon img {
-  width: 100%;
-  border-radius: 15px;
-}
-
-.hexagon p {
-  margin-top: 10px;
-  font-weight: bold;
-  color: white;
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .diagonal-cut {
+    display: none;
+  }
+  
+  /* En móviles, mostrar solo el formulario */
+  .image-section {
+    display: none;
+  }
+  
+  .form-section {
+    width: 100%;
+  }
 }

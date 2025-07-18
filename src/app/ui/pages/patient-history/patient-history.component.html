@@ -1,6 +1,7 @@
 <app-navbar></app-navbar>
 
 <div class="bg-gray-200 h-[calc(100vh-64px)] py-6 px-4 flex gap-4 overflow-hidden">
+  <!-- Panel lateral -->
   <aside class="w-64 bg-white rounded-lg shadow p-4 h-fit self-start">
     <h2 class="font-semibold text-sm mb-4">NOVEDADES DE REGISTROS</h2>
     <ul class="text-sm space-y-2">
@@ -23,33 +24,59 @@
     </ul>
   </aside>
 
+  <!-- Contenido principal -->
   <main class="flex-1 flex flex-col gap-6 overflow-hidden">
-    
+    <!-- Título -->
     <div class="text-center bg-white border-t-4 border-red-500 rounded-lg shadow p-6">
       <h1 class="text-3xl font-bold mb-1">Historial de pacientes</h1>
       <p class="text-sm text-gray-700">Resumen general del sistema de monitoreo médico</p>
     </div>
 
+    <!-- Contenedor con filtros y lista -->
     <div class="bg-white rounded-lg shadow p-4 flex-1 flex flex-col overflow-hidden">
-      
       <!-- Filtros -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <select class="p-2 border rounded text-sm">
-          <option>Todos los estados</option>
-          <option>Activo</option>
-          <option>Crítico</option>
-          <option>Alta</option>
-        </select>
+        <!-- Estado -->
+        <p-dropdown
+          [options]="stateOptions"
+          [(ngModel)]="selectedState"
+          placeholder="Todos los estados"
+          optionLabel="label"
+          styleClass="w-full"
+        ></p-dropdown>
 
-        <input type="date" class="p-2 border rounded text-sm" />
-        <input type="date" class="p-2 border rounded text-sm" />
+        <!-- Fecha inicio -->
+        <p-calendar
+          [(ngModel)]="startDate"
+          placeholder="Fecha inicio"
+          [showIcon]="true"
+          dateFormat="dd/mm/yy"
+        ></p-calendar>
 
-        <select class="p-2 border rounded text-sm">
-          <option>Todas las estaciones</option>
-        </select>
+        <!-- Fecha fin -->
+        <p-calendar
+          [(ngModel)]="endDate"
+          placeholder="Fecha fin"
+          [showIcon]="true"
+          dateFormat="dd/mm/yy"
+        ></p-calendar>
+
+        <!-- Estaciones -->
+        <p-dropdown
+          [options]="stationOptions"
+          [(ngModel)]="selectedStation"
+          placeholder="Todas las estaciones"
+          optionLabel="label"
+          styleClass="w-full"
+        ></p-dropdown>
       </div>
 
-      <!-- Lista de pacientes con scroll interno -->
+      <!-- Botón de filtros -->
+      <div class="md:col-span-4 flex justify-end mb-4">
+        <button pButton type="button" label="Aplicar filtros" icon="pi pi-filter" class="p-button-sm"></button>
+      </div>
+
+      <!-- Lista de pacientes -->
       <div class="overflow-y-auto flex-1 space-y-2 pr-2">
         <div
           *ngFor="let patient of patients"
@@ -66,6 +93,5 @@
         </div>
       </div>
     </div>
-
   </main>
 </div>
