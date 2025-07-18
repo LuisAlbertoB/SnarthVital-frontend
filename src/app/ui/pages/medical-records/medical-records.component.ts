@@ -8,10 +8,12 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { Record } from '../../../features/medicalRecord/models/record';
 import { MedicalRecordService } from '../../../features/medicalRecord/medical-record.service';
+import { PdfGeneratorService } from '../../../features/medicalRecord/pdf-generator.service';
 import { UserService } from '../../../features/user/user.service';
 import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
+import { TooltipModule } from 'primeng/tooltip';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -26,6 +28,7 @@ import { RouterModule } from '@angular/router';
     FormsModule,
     DatePickerModule,
     SelectModule,
+    TooltipModule,
     RouterModule
   ],
   templateUrl: './medical-records.component.html',
@@ -39,10 +42,12 @@ export class MedicalRecordsComponent implements OnInit {
   selectedPatient: User | undefined;
   recordNumber: string = '';
   patientOptions: any[] = [];
+  downloadingRecords: Set<number> = new Set();
 
   constructor(
     private authService: AuthService,
     private recordService: MedicalRecordService,
+    private pdfGenerator: PdfGeneratorService,
     private userService: UserService
   ) { }
 
@@ -158,5 +163,35 @@ export class MedicalRecordsComponent implements OnInit {
   filterByRecordNumber(records: Record[]): Record[] {
     if (!this.recordNumber) return records;
     return records.filter(record => record.id.toString().includes(this.recordNumber));
+  }
+
+  async downloadRecordPDF(recordId: number): Promise<void> {
+    this.downloadingRecords.add(recordId);
+
+    try {
+      // Obtener el record completo con riesgos
+      this.recordService.getMedicalRecordWithRisks(recordId).subscribe({
+        next: async (recordWithRisks) => {
+          try {
+            await this.pdfGenerator.generateRecordPDF(recordWithRisks);
+          } catch (error) {
+            console.error('Error generating PDF:', error);
+          } finally {
+            this.downloadingRecords.delete(recordId);
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching record:', error);
+          this.downloadingRecords.delete(recordId);
+        }
+      });
+    } catch (error) {
+      console.error('Error in downloadRecordPDF:', error);
+      this.downloadingRecords.delete(recordId);
+    }
+  }
+
+  isDownloading(recordId: number): boolean {
+    return this.downloadingRecords.has(recordId);
   }
 }
