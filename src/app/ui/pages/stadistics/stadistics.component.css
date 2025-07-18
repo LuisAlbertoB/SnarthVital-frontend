@@ -1,0 +1,386 @@
+.statistics-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.header-section {
+  margin-bottom: 30px;
+}
+
+.header-section h1 {
+  color: #2c3e50;
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.filters-section {
+  display: flex;
+  gap: 20px;
+  align-items: end;
+  justify-content: center;
+  flex-wrap: wrap;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-item label {
+  font-weight: 500;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.summary-cards {
+  margin-bottom: 30px;
+}
+
+.summary-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.summary-item .label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 5px;
+}
+
+.summary-item .value {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.risk-highlight {
+  color: #dc3545 !important;
+  font-weight: bold;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.chart-container {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container.full-width {
+  grid-column: 1 / -1;
+}
+
+.chart-wrapper {
+  padding: 20px;
+  height: 400px;
+  position: relative;
+}
+
+.chart-wrapper canvas {
+  max-height: 100% !important;
+}
+
+.risk-details {
+  margin-bottom: 30px;
+}
+
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.risk-item {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.risk-card {
+  padding: 20px;
+  border-left: 4px solid #6c757d;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.risk-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.risk-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.risk-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.risk-level {
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.risk-progress {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.risk-progress p-progressBar {
+  flex: 1;
+}
+
+.risk-percentage {
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 50px;
+  text-align: right;
+}
+
+.detailed-stats {
+  margin-bottom: 30px;
+}
+
+.stats-table {
+  overflow-x: auto;
+}
+
+.stats-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.stats-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  position: sticky;
+  top: 0;
+}
+
+.stats-table td {
+  color: #2c3e50;
+}
+
+.stats-table tr:hover {
+  background: #f8f9fa;
+}
+
+.no-data,
+.no-selection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.no-data-content {
+  text-align: center;
+  padding: 40px;
+}
+
+.no-data-content h3 {
+  color: #6c757d;
+  margin: 20px 0 10px 0;
+}
+
+.no-data-content p {
+  color: #6c757d;
+  margin: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .statistics-container {
+    padding: 15px;
+  }
+  
+  .filters-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-wrapper {
+    height: 300px;
+  }
+  
+  .summary-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .risk-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-table {
+    font-size: 0.85rem;
+  }
+  
+  .stats-table th,
+  .stats-table td {
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-section h1 {
+    font-size: 2rem;
+  }
+  
+  .chart-wrapper {
+    padding: 15px;
+    height: 250px;
+  }
+  
+  .risk-card {
+    padding: 15px;
+  }
+}
+
+/* PrimeNG component overrides */
+::ng-deep .p-card {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+::ng-deep .p-card .p-card-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+::ng-deep .p-button {
+  background: #007bff;
+  border-color: #007bff;
+}
+
+::ng-deep .p-button:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+}
+
+::ng-deep .p-select {
+  border: 1px solid #ced4da;
+}
+
+::ng-deep .p-datepicker {
+  border: 1px solid #ced4da;
+}
+
+::ng-deep .p-progressbar {
+  height: 10px;
+  background: #e9ecef;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+::ng-deep .p-progressbar .p-progressbar-value {
+  border-radius: 5px;
+}
+
+/* Estilos específicos para el gráfico de evolución de temperatura */
+.temperature-evolution {
+  height: 500px !important;
+}
+
+.statistical-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+.stat-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.stat-info-item .label {
+  font-weight: 500;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.stat-info-item .value {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+/* Responsive para información estadística */
+@media (max-width: 768px) {
+  .temperature-evolution {
+    height: 350px !important;
+  }
+  
+  .statistical-info {
+    grid-template-columns: 1fr;
+    padding: 15px;
+  }
+  
+  .stat-info-item {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .temperature-evolution {
+    height: 300px !important;
+  }
+}

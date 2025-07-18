@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { CardsComponent } from '../../components/cards/cards.component';
 import { ChartModule } from 'primeng/chart';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../auth/auth.service';
 import { Subscription } from 'rxjs';
 import { WebsocketService } from '../../../features/sensor/websocket.service';
@@ -18,9 +20,10 @@ import { SelectModule } from 'primeng/select';
 @Component({
   selector: 'app-panel',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, CardsComponent, ChartModule, SelectModule, FormsModule],
+  imports: [CommonModule, NavbarComponent, CardsComponent, ChartModule, SelectModule, FormsModule, ToastModule],
   templateUrl: './panel.component.html',
-  styleUrls: ['./panel.component.css']
+  styleUrls: ['./panel.component.css'],
+  providers: [MessageService]
 })
 export class PanelComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
@@ -33,6 +36,12 @@ export class PanelComponent implements OnInit, OnDestroy {
   patients: User[] = [];
   patientOptions: any[] = [];
   selectedPatient: any; // Changed to any to accommodate primeng select options
+
+  // Variables para controlar la navegación durante el monitoreo
+  monitoringStartTime: Date | null = null;
+  private oneMinuteTimer: any = null;
+  private isOneMinutePassed = false;
+  private beforeUnloadHandler: ((event: BeforeUnloadEvent) => void) | null = null;
 
   // Propiedad para controlar si el botón de monitoreo está habilitado
   get canStartMonitoring(): boolean {
@@ -189,8 +198,50 @@ export class PanelComponent implements OnInit, OnDestroy {
   constructor(
     private websocketService: WebsocketService,
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private messageService: MessageService
   ) { }
+
+  // Métodos para gestionar la prevención de navegación durante el monitoreo
+  private setupNavigationWarning(): void {
+    this.beforeUnloadHandler = (event: BeforeUnloadEvent) => {
+      if (this.isMonitoring && !this.isOneMinutePassed) {
+        const message = 'Si sales ahora, perderás el registro de monitoreo en curso. ¿Estás seguro de que quieres salir?';
+        event.preventDefault();
+        event.returnValue = message;
+        return message;
+      }
+      return undefined;
+    };
+    window.addEventListener('beforeunload', this.beforeUnloadHandler);
+  }
+
+  private removeNavigationWarning(): void {
+    if (this.beforeUnloadHandler) {
+      window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+      this.beforeUnloadHandler = null;
+    }
+  }
+
+  private startOneMinuteTimer(): void {
+    this.monitoringStartTime = new Date();
+    this.isOneMinutePassed = false;
+
+    this.oneMinuteTimer = setTimeout(() => {
+      this.isOneMinutePassed = true;
+      this.removeNavigationWarning();
+      console.log('Un minuto ha pasado, navegación libre permitida');
+    }, 60000); // 60 segundos
+  }
+
+  private clearOneMinuteTimer(): void {
+    if (this.oneMinuteTimer) {
+      clearTimeout(this.oneMinuteTimer);
+      this.oneMinuteTimer = null;
+    }
+    this.isOneMinutePassed = false;
+    this.monitoringStartTime = null;
+  }
 
   ngOnInit() {
     this.currentUserId = this.authService.getUser()?.id || 0;
@@ -298,12 +349,27 @@ export class PanelComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     // Limpiar suscripciones
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    // Limpiar timer y warnings de navegación
+    this.clearOneMinuteTimer();
+    this.removeNavigationWarning();
     // Desconectar WebSocket
     this.websocketService.disconnect();
   }
 
   startMonitoring() {
     if (this.isConnected) {
+      // Mostrar toast notification
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Monitoreo iniciado',
+        detail: 'Por favor, espere 1 minuto antes de cambiar de pantalla o detener la medicion',
+        life: 10000
+      });
+
+      // Configurar prevención de navegación y timer
+      this.setupNavigationWarning();
+      this.startOneMinuteTimer();
+
       let patientIdToMonitor = this.currentUserId;
 
       // Si es doctor y tiene un paciente seleccionado, usar el ID del paciente
@@ -353,6 +419,10 @@ export class PanelComponent implements OnInit, OnDestroy {
 
       this.websocketService.stopMeasurement(patientIdToStop);
       console.log('Monitoreo detenido para paciente ID:', patientIdToStop);
+
+      // Limpiar prevención de navegación y timer
+      this.clearOneMinuteTimer();
+      this.removeNavigationWarning();
     } else {
       console.error('WebSocket no está conectado');
     }

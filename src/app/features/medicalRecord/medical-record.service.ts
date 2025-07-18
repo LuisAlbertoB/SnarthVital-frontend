@@ -5,6 +5,7 @@ import { Record } from './models/record';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { RecordWithRisks } from './models/record-with-risks';
+import { PatientStadistics } from './models/patient-stadistics';
 
 @Injectable({
   providedIn: 'root'
@@ -62,8 +63,8 @@ export class MedicalRecordService {
     });
   }
 
-  getPatientStatistics(patient_id: number): Observable<Record[]> {
-    return this.http.get<Record[]>(`${this.apiUrl}/stadistics/${patient_id}`, {
+  getPatientStatistics(patient_id: number): Observable<PatientStadistics> {
+    return this.http.get<PatientStadistics>(`${this.apiUrl}/stadistics/${patient_id}`, {
       headers: {
         'Authorization': `Bearer ${this.authService.getToken()}`
       }

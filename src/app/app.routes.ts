@@ -7,6 +7,7 @@ import { PatientHistoryComponent } from './ui/pages/patient-history/patient-hist
 import { ProfileComponent } from './ui/pages/profile/profile.component';
 import { CreatePacienteComponent } from './ui/pages/create-paciente/create-paciente.component';
 import { RecordComponent } from './ui/pages/record/record.component';
+import { StadisticsComponent } from './ui/pages/stadistics/stadistics.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -17,4 +18,5 @@ export const routes: Routes = [
   { path: 'profile', component: ProfileComponent },
   { path: 'createPaciente', component: CreatePacienteComponent },
   { path: 'record/:id', component: RecordComponent },
+  { path: 'stadistics', component: StadisticsComponent },
 ];
