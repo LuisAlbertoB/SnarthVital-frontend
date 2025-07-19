@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { User } from '../features/user/models/user';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { Router } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -20,7 +21,8 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient, private router: Router) { }
 
   register(data: User): Observable<any> {
     return this.http.post(`${this.apiUrl}/users`, data);
@@ -82,8 +84,10 @@ export class AuthService {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     this.setLoggedIn(false);
-    // Limpiar el usuario actual
     this.currentUserSubject.next(null);
+
+    localStorage.setItem('showDoctorFirst', 'true'); 
+    this.router.navigate(['/login']);
   }
 
   setToken(token: string): void {
