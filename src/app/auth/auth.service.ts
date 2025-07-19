@@ -69,8 +69,10 @@ export class AuthService {
   }
 
   isLogged(): boolean {
-    return this.isLoggedIn;
-  }
+  const token = localStorage.getItem('token');
+  return !!token;
+}
+
 
   setLoggedIn(status: boolean): void {
     this.isLoggedIn = status;
