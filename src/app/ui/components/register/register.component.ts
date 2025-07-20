@@ -21,6 +21,8 @@ export class RegisterModalComponent {
   password: '',
   role: 'patient',
   profile_picture: '',
+  gender: 'other',
+  pregnant: false,
   age: 18
 };
 

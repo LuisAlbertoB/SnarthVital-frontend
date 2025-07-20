@@ -8,4 +8,6 @@ export interface User {
   profile_picture: string;
   role: 'admin' | 'doctor' | 'patient';
   age?: number;
+  gender: 'male' | 'female' | 'other';
+  pregnant: boolean;
 }
