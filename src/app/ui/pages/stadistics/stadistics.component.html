@@ -1,5 +1,8 @@
 <app-navbar></app-navbar>
 
+<!-- Toast para mensajes -->
+<p-toast></p-toast>
+
 <div class="statistics-container">
     <div class="header-section">
         <h1>Estadísticas de Paciente</h1>
@@ -10,7 +13,7 @@
                 <label for="patient-select">Seleccionar Paciente:</label>
                 <p-select id="patient-select" [options]="patientOptions" [(ngModel)]="selectedPatient"
                     (onChange)="onPatientChange()" placeholder="Seleccione un paciente" optionLabel="label"
-                    [style]="{'width': '300px'}">
+                    optionValue="value" [style]="{'width': '300px'}">
                 </p-select>
             </div>
 
@@ -21,7 +24,12 @@
                 </p-datePicker>
             </div>
 
-            <p-button label="Aplicar Filtros" (onClick)="applyDateFilter()" [disabled]="!selectedPatient">
+            <p-button label="Aplicar Filtros" (onClick)="applyDateFilter()"
+                [disabled]="!selectedPatient || selectedPatient === null">
+            </p-button>
+
+            <p-button label="Limpiar Filtros" (onClick)="clearFilters()" severity="secondary"
+                [disabled]="(!selectedPatient || selectedPatient === null) && !rangeDates" outlined>
             </p-button>
         </div>
 
@@ -36,11 +44,16 @@
 
             <p-button label="Aplicar Filtro" (onClick)="applyDateFilter()">
             </p-button>
+
+            <p-button label="Limpiar Filtro" (onClick)="clearFilters()" severity="secondary" [disabled]="!rangeDates"
+                outlined>
+            </p-button>
         </div>
     </div>
 
     <!-- Selector de Gráficos -->
-    <div class="chart-selector" *ngIf="statistics || selectedPatient || currentUser.role === 'patient'">
+    <div class="chart-selector"
+        *ngIf="(statistics || selectedPatient || currentUser.role === 'patient') && !hasError && !isLoading">
         <h3>Seleccionar Gráficos a Mostrar</h3>
 
         <!-- Botones de control -->
@@ -71,7 +84,7 @@
     </div>
 
     <!-- Mensaje cuando no hay gráficos seleccionados -->
-    <div class="no-charts-selected" *ngIf="statistics && noChartsSelected">
+    <div class="no-charts-selected" *ngIf="statistics && noChartsSelected && !hasError && !isLoading">
         <p-card>
             <div class="no-data-content">
                 <i class="pi pi-eye-slash" style="font-size: 3rem; color: #6c757d;"></i>
@@ -82,7 +95,7 @@
     </div>
 
     <!-- Contenido principal -->
-    <div class="content-section" *ngIf="statistics && !noChartsSelected">
+    <div class="content-section" *ngIf="statistics && !noChartsSelected && !hasError && !isLoading">
 
         <!-- Resumen general -->
         <div class="summary-cards">
@@ -343,8 +356,36 @@
         </div>
     </div>
 
-    <!-- Mensaje cuando no hay datos -->
-    <div class="no-data" *ngIf="!statistics && (selectedPatient || currentUser.role === 'patient')">
+    <!-- Indicador de carga -->
+    <div class="loading-container" *ngIf="isLoading && !hasError">
+        <p-card>
+            <div class="no-data-content">
+                <i class="pi pi-spin pi-spinner" style="font-size: 3rem; color: #007bff;"></i>
+                <h3>Cargando estadísticas...</h3>
+                <p>Por favor espere mientras se cargan los datos.</p>
+            </div>
+        </p-card>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div class="error-container" *ngIf="hasError && !isLoading">
+        <p-card>
+            <div class="no-data-content">
+                <i class="pi pi-exclamation-triangle" style="font-size: 3rem; color: #dc3545;"></i>
+                <h3>Error al cargar datos</h3>
+                <p>{{ errorMessage }}</p>
+                <div style="margin-top: 1rem;">
+                    <p-button label="Reintentar" icon="pi pi-refresh" (onClick)="retryLoad()"
+                        [style]="{'margin-right': '0.5rem'}">
+                    </p-button>
+                </div>
+            </div>
+        </p-card>
+    </div>
+
+    <!-- Mensaje cuando no hay datos (solo si no hay error ni carga) -->
+    <div class="no-data"
+        *ngIf="!statistics && !hasError && !isLoading && (selectedPatient || currentUser.role === 'patient')">
         <p-card>
             <div class="no-data-content">
                 <i class="pi pi-chart-line" style="font-size: 3rem; color: #6c757d;"></i>
@@ -355,7 +396,8 @@
     </div>
 
     <!-- Mensaje inicial para doctores -->
-    <div class="no-selection" *ngIf="!statistics && !selectedPatient && currentUser.role === 'doctor'">
+    <div class="no-selection"
+        *ngIf="!statistics && !hasError && !isLoading && !selectedPatient && currentUser.role === 'doctor'">
         <p-card>
             <div class="no-data-content">
                 <i class="pi pi-user" style="font-size: 3rem; color: #6c757d;"></i>

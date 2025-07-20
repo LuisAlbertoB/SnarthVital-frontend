@@ -558,3 +558,61 @@
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* Estilos para estados de carga y error */
+.loading-container,
+.error-container {
+  margin: 40px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.loading-container .no-data-content {
+  text-align: center;
+  padding: 40px;
+}
+
+.loading-container .no-data-content i {
+  animation: spin 2s linear infinite;
+}
+
+.error-container .no-data-content {
+  text-align: center;
+  padding: 40px;
+}
+
+.error-container .no-data-content i {
+  margin-bottom: 20px;
+}
+
+.error-container .no-data-content h3 {
+  color: #dc3545;
+  margin-bottom: 15px;
+}
+
+.error-container .no-data-content p {
+  color: #6c757d;
+  margin-bottom: 20px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mejoras para toast */
+:host ::ng-deep .p-toast {
+  z-index: 1050;
+}
+
+:host ::ng-deep .p-toast .p-toast-message {
+  margin: 0 0 1rem 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+:host ::ng-deep .p-toast .p-toast-message .p-toast-message-content {
+  padding: 1rem;
+}

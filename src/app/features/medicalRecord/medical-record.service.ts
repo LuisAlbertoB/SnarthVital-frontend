@@ -55,8 +55,8 @@ export class MedicalRecordService {
     });
   }
 
-  getDoctorStatistics(doctor_id: number): Observable<Record[]> {
-    return this.http.get<Record[]>(`${this.apiUrl}/stadistics/${doctor_id}/patients`, {
+  getDoctorStatistics(doctor_id: number): Observable<PatientStadistics> {
+    return this.http.get<PatientStadistics>(`${this.apiUrl}/stadistics/${doctor_id}/patients`, {
       headers: {
         'Authorization': `Bearer ${this.authService.getToken()}`
       }
@@ -71,11 +71,11 @@ export class MedicalRecordService {
     });
   }
 
-  getDoctorStatisticsByRange(doctor_id: number, startDate: string, endDate: string): Observable<Record[]> {
-    return this.http.get<Record[]>(`${this.apiUrl}/stadistics/${doctor_id}/patients/range`, {
+  getDoctorStatisticsByRange(doctor_id: number, startDate: string, endDate: string): Observable<PatientStadistics> {
+    return this.http.get<PatientStadistics>(`${this.apiUrl}/stadistics/${doctor_id}/patients/range`, {
       params: {
-        startDate: startDate,
-        endDate: endDate
+        start_date: startDate,
+        end_date: endDate
       },
       headers: {
         'Authorization': `Bearer ${this.authService.getToken()}`
@@ -83,11 +83,11 @@ export class MedicalRecordService {
     });
   }
 
-  getPatientStatisticsByRange(patient_id: number, startDate: string, endDate: string): Observable<Record[]> {
-    return this.http.get<Record[]>(`${this.apiUrl}/stadistics/${patient_id}/range`, {
+  getPatientStatisticsByRange(patient_id: number, startDate: string, endDate: string): Observable<PatientStadistics> {
+    return this.http.get<PatientStadistics>(`${this.apiUrl}/stadistics/${patient_id}/range`, {
       params: {
-        startDate: startDate,
-        endDate: endDate
+        start_date: startDate,
+        end_date: endDate
       },
       headers: {
         'Authorization': `Bearer ${this.authService.getToken()}`

@@ -16,6 +16,8 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 Chart.register(...registerables);
 
@@ -32,10 +34,12 @@ Chart.register(...registerables);
     CardModule,
     InputTextModule,
     DatePickerModule,
-    ProgressBarModule
+    ProgressBarModule,
+    ToastModule
   ],
   templateUrl: './stadistics.component.html',
-  styleUrl: './stadistics.component.css'
+  styleUrl: './stadistics.component.css',
+  providers: [MessageService]
 })
 export class StadisticsComponent implements OnInit {
   currentUser!: User;
@@ -45,6 +49,11 @@ export class StadisticsComponent implements OnInit {
   statistics!: PatientStadistics;
   medicalRecords: Record[] = [];
   rangeDates: Date[] | undefined;
+
+  // Estados de error y carga
+  errorMessage: string = '';
+  hasError: boolean = false;
+  isLoading: boolean = false;
 
   // Configuración de visibilidad de gráficos
   chartVisibility = {
@@ -265,7 +274,8 @@ export class StadisticsComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private recordService: MedicalRecordService,
-    private userService: UserService
+    private userService: UserService,
+    private messageService: MessageService
   ) { }
 
   ngOnInit(): void {
@@ -278,6 +288,7 @@ export class StadisticsComponent implements OnInit {
 
     if (this.currentUser.role === 'doctor') {
       this.loadPatients();
+      this.loadPatientsStadistics();
     } else if (this.currentUser.role === 'patient') {
       this.loadPatientStatistics(this.currentUser.id!);
     }
@@ -291,59 +302,258 @@ export class StadisticsComponent implements OnInit {
     this.userService.getPatients(this.currentUser.id).subscribe({
       next: (data) => {
         this.patients = data;
-        this.patientOptions = data.map(patient => ({
-          label: `${patient.name} ${patient.lastname}`,
-          value: patient
-        }));
+
+        this.patientOptions = [
+          {
+            label: '-- No seleccionado --',
+            value: null
+          },
+          ...data.map(patient => ({
+            label: `${patient.name} ${patient.lastname}`,
+            value: patient
+          }))
+        ];
       },
       error: (error) => {
         console.error('Error fetching patients:', error);
+
+        // Extraer el mensaje de error del backend
+        let errorMessage = '';
+        if (error.error && error.error.detail) {
+          errorMessage = error.error.detail;
+        } else if (error.message) {
+          errorMessage = error.message;
+        } else {
+          errorMessage = 'Error al cargar la lista de pacientes';
+        }
+
+        // Mostrar toast con el error
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: errorMessage,
+          life: 5000
+        });
       }
     });
   }
 
   onPatientChange(): void {
-    if (this.selectedPatient?.id) {
+    console.log('Patient changed:', this.selectedPatient);
+
+    if (this.selectedPatient === null) {
+      // Se seleccionó "Ningún paciente"
+      this.clearPatientData();
+    } else if (this.selectedPatient?.id) {
+      // Se seleccionó un paciente válido
+      // Limpiar fechas cuando se cambia de paciente
+      this.rangeDates = undefined;
+      // Cargar estadísticas del paciente seleccionado
       this.loadPatientStatistics(this.selectedPatient.id);
     }
   }
 
+  clearPatientData(): void {
+    // Limpiar datos relacionados con paciente específico
+    this.rangeDates = undefined;
+    this.statistics = undefined as any;
+    this.medicalRecords = [];
+    this.hasError = false;
+    this.errorMessage = '';
+
+    // Cargar estadísticas generales del doctor
+    this.loadPatientsStadistics();
+
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Vista general',
+      detail: 'Mostrando estadísticas generales de todos los pacientes',
+      life: 2000
+    });
+  }
+
+  loadPatientsStadistics(): void {
+    if (this.currentUser.id) {
+      this.isLoading = true;
+      this.hasError = false;
+      this.errorMessage = '';
+
+      this.recordService.getDoctorStatistics(this.currentUser.id).subscribe({
+        next: (data: any) => {
+          console.log(data);
+          this.statistics = data;
+          this.medicalRecords = data.records;
+          this.updateCharts();
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error fetching doctor statistics:', error);
+          this.isLoading = false;
+          this.hasError = true;
+
+          // Extraer el mensaje de error del backend
+          if (error.error && error.error.detail) {
+            this.errorMessage = error.error.detail;
+          } else if (error.message) {
+            this.errorMessage = error.message;
+          } else {
+            this.errorMessage = 'Error al cargar las estadísticas del doctor';
+          }
+
+          // Mostrar toast con el error
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Información',
+            detail: this.errorMessage,
+            life: 5000
+          });
+        }
+      });
+    } else if (this.currentUser.role === 'patient') {
+      this.loadPatientStatistics(this.currentUser.id!);
+    }
+  }
+
   loadPatientStatistics(patientId: number): void {
+    this.isLoading = true;
+    this.hasError = false;
+    this.errorMessage = '';
+
+    console.log('Loading patient statistics for patient:', patientId);
+    console.log('Date range:', this.rangeDates);
+
     if (this.rangeDates && this.rangeDates.length > 0 && this.rangeDates[0]) {
       const startDate = this.rangeDates[0].toISOString().split('T')[0];
       const endDate = (this.rangeDates[1] ? this.rangeDates[1] : this.rangeDates[0]).toISOString().split('T')[0];
 
+      console.log('Using date range:', startDate, 'to', endDate);
+
       // Obtener estadísticas que ya incluyen los registros
       this.recordService.getPatientStatisticsByRange(patientId, startDate, endDate).subscribe({
-        next: (data: any) => {
+        next: (data: PatientStadistics) => {
+          console.log('Patient statistics by range received:', data);
           this.statistics = data;
-          this.medicalRecords = data.records;
+          this.medicalRecords = data.records || [];
           this.updateCharts();
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching patient data by range:', error);
+          this.isLoading = false;
+          this.hasError = true;
+
+          // Extraer el mensaje de error del backend
+          if (error.error && error.error.detail) {
+            this.errorMessage = error.error.detail;
+          } else if (error.message) {
+            this.errorMessage = error.message;
+          } else {
+            this.errorMessage = 'Error al cargar las estadísticas del paciente para el rango de fechas';
+          }
+
+          // Mostrar toast con el error
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Información',
+            detail: this.errorMessage,
+            life: 5000
+          });
         }
       });
     } else {
+      console.log('Loading all patient statistics');
+
       // Obtener estadísticas que ya incluyen los registros
       this.recordService.getPatientStatistics(patientId).subscribe({
-        next: (data) => {
+        next: (data: PatientStadistics) => {
+          console.log('Patient statistics received:', data);
           this.statistics = data;
-          this.medicalRecords = data.records;
+          this.medicalRecords = data.records || [];
           this.updateCharts();
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching patient data:', error);
+          this.isLoading = false;
+          this.hasError = true;
+
+          // Extraer el mensaje de error del backend
+          if (error.error && error.error.detail) {
+            this.errorMessage = error.error.detail;
+          } else if (error.message) {
+            this.errorMessage = error.message;
+          } else {
+            this.errorMessage = 'Error al cargar las estadísticas del paciente';
+          }
+
+          // Mostrar toast con el error
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Información',
+            detail: this.errorMessage,
+            life: 5000
+          });
         }
       });
     }
   }
 
   applyDateFilter(): void {
+    console.log('Applying date filter:', this.rangeDates);
+
     if (this.currentUser.role === 'patient') {
       this.loadPatientStatistics(this.currentUser.id!);
-    } else if (this.selectedPatient?.id) {
+    } else if (this.currentUser.role === 'doctor' && this.selectedPatient?.id) {
       this.loadPatientStatistics(this.selectedPatient.id);
+    } else if (this.currentUser.role === 'doctor' && (!this.selectedPatient || this.selectedPatient === null)) {
+      // Cargar estadísticas del doctor con filtro de fechas cuando no hay paciente seleccionado
+      this.loadPatientsStadistics();
+    } else {
+      // Mostrar mensaje si no hay paciente seleccionado
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Debe seleccionar un paciente antes de aplicar filtros',
+        life: 3000
+      });
+    }
+  }
+
+  clearFilters(): void {
+    this.rangeDates = undefined;
+
+    // Recargar datos sin filtros
+    if (this.currentUser.role === 'patient') {
+      this.loadPatientStatistics(this.currentUser.id!);
+    } else if (this.currentUser.role === 'doctor' && this.selectedPatient?.id) {
+      this.loadPatientStatistics(this.selectedPatient.id);
+    } else if (this.currentUser.role === 'doctor' && (!this.selectedPatient || this.selectedPatient === null)) {
+      // Cargar estadísticas generales del doctor cuando no hay paciente seleccionado
+      this.loadPatientsStadistics();
+    }
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Filtros limpiados',
+      detail: 'Se han eliminado los filtros de fecha',
+      life: 2000
+    });
+  }
+
+  retryLoad(): void {
+    // Limpiar estados de error
+    this.hasError = false;
+    this.errorMessage = '';
+
+    // Intentar cargar datos nuevamente según el contexto
+    if (this.currentUser.role === 'doctor') {
+      if (this.selectedPatient?.id) {
+        this.loadPatientStatistics(this.selectedPatient.id);
+      } else {
+        this.loadPatientsStadistics();
+      }
+    } else if (this.currentUser.role === 'patient') {
+      this.loadPatientStatistics(this.currentUser.id!);
     }
   }
 
