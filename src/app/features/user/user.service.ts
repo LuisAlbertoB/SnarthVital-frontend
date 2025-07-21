@@ -79,4 +79,12 @@ export class UserService {
       }
     });
   }
+
+  updateUserWithFormData(userId: number, formData: FormData): Observable<User> {
+    return this.http.put<User>(`${environment.API_URL}/users/${userId}`, formData, {
+      headers: {
+        'Authorization': `Bearer ${this.authService.getToken()}`
+      }
+    });
+  }
 }

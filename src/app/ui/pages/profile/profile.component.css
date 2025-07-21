@@ -24,6 +24,26 @@
   width: 100%;
 }
 
+:host ::ng-deep .p-inputnumber {
+  width: 100%;
+}
+
+:host ::ng-deep .p-inputnumber input {
+  width: 100%;
+}
+
+:host ::ng-deep .p-password {
+  width: 100%;
+}
+
+:host ::ng-deep .p-password input {
+  width: 100%;
+}
+
+:host ::ng-deep .p-checkbox {
+  margin-right: 0.5rem;
+}
+
 :host ::ng-deep .p-avatar {
   width: 100px;
   height: 100px;
@@ -74,6 +94,18 @@
 
 .form-field.full-width {
   grid-column: 1 / -1;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.field-help {
+  color: var(--text-color-secondary, #6c757d);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
 }
 
 .form-actions {
