@@ -10,7 +10,7 @@
 
   <!-- Grid de tarjetas para admin y doctor-->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-10"
-    *ngIf="currentUser.role === 'admin' || currentUser.role === 'doctor'">
+    *ngIf="currentUser.role === 'doctor'">
 
      <a routerLink="/createPaciente"><app-cards icon="➕👤" title="AGREGAR PACIENTE" subtitle="Registrar un nuevo paciente" borderColor="border-green-500" />
       </a>
@@ -25,5 +25,9 @@
     <a routerLink="/panel">
       <app-cards icon="📊" title="MEDICIÓN" subtitle="Ver medición en tiempo real" borderColor="border-red-500" />
     </a>
+  </div>
+  <!-- Grid de tarjetas para admin -->
+  <div class="grid grid-cols-1 gap-6 max-w-5xl mx-auto mt-10" *ngIf="currentUser.role === 'admin'">
+    <a routerLink="/users"><app-cards icon="👥" title="USUARIOS" subtitle="Gestionar usuarios" borderColor="border-green-500" /></a>
   </div>
 </div>

@@ -5,27 +5,32 @@
   </a>
 
   <div class="flex-1 flex justify-center mx-4">
-    
+
   </div>
 
   <div class="flex items-center space-x-8 ">
     <a routerLink="/home" routerLinkActive="router-link-active">
       <i class="pi pi-home text-2xl"></i>
     </a>
-    <a routerLink="/panel" routerLinkActive="router-link-active">
+    <a routerLink="/panel" routerLinkActive="router-link-active" *ngIf="user.role !== 'admin'">
       <i class="pi pi-wave-pulse text-2xl"></i>
     </a>
-    <a routerLink="/records" routerLinkActive="router-link-active">
+    <a routerLink="/records" routerLinkActive="router-link-active" *ngIf="user.role !== 'admin'">
       <i class="pi pi-file text-2xl"></i>
     </a>
-    <a routerLink="/stadistics" routerLinkActive="router-link-active">
+    <a routerLink="/stadistics" routerLinkActive="router-link-active" *ngIf="user.role !== 'admin'">
       <i class="pi pi-chart-line text-2xl"></i>
     </a>
-    <a routerLink="/history" routerLinkActive="router-link-active" *ngIf="user?.role === 'doctor' || user?.role === 'admin'">
+    <a routerLink="/history" routerLinkActive="router-link-active"
+      *ngIf="user?.role === 'doctor'">
       <i class="pi pi-id-card text-2xl"></i>
     </a>
-    <a routerLink="/createPaciente" routerLinkActive="router-link-active" *ngIf="user?.role === 'doctor' || user?.role === 'admin'">
+    <a routerLink="/createPaciente" routerLinkActive="router-link-active"
+      *ngIf="user?.role === 'doctor'">
       <i class="pi pi-user-plus text-2xl"></i>
+    </a>
+    <a routerLink="/users" routerLinkActive="router-link-active" *ngIf="user?.role === 'admin'">
+      <i class="pi pi-users text-2xl"></i>
     </a>
     <!-- Puedes agregar más íconos/rutas aquí -->
   </div>

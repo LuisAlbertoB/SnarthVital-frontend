@@ -62,7 +62,9 @@ export class StadisticsComponent implements OnInit {
     rangeComparison: true,
     temperatureEvolution: true,
     heartRateEvolution: true,
-    oxygenSaturationEvolution: true
+    oxygenSaturationEvolution: true,
+    agitationScatter: true,
+    shockScatter: true
   };
 
   // Opciones para el selector de gráficos
@@ -72,10 +74,12 @@ export class StadisticsComponent implements OnInit {
     { label: 'Comparación con Rangos', value: 'rangeComparison', icon: 'pi-chart-line' },
     { label: 'Evolución de Temperatura', value: 'temperatureEvolution', icon: 'pi-sun' },
     { label: 'Evolución de Frecuencia Cardíaca', value: 'heartRateEvolution', icon: 'pi-heart' },
-    { label: 'Evolución de Saturación O2', value: 'oxygenSaturationEvolution', icon: 'pi-circle' }
+    { label: 'Evolución de Saturación O2', value: 'oxygenSaturationEvolution', icon: 'pi-circle' },
+    { label: 'Análisis de Agitación', value: 'agitationScatter', icon: 'pi-exclamation-circle' },
+    { label: 'Análisis de Shock', value: 'shockScatter', icon: 'pi-bolt' }
   ];
 
-  selectedCharts: string[] = ['statsBar', 'riskRadar', 'rangeComparison', 'temperatureEvolution', 'heartRateEvolution', 'oxygenSaturationEvolution'];
+  selectedCharts: string[] = ['statsBar', 'riskRadar', 'rangeComparison', 'temperatureEvolution', 'heartRateEvolution', 'oxygenSaturationEvolution', 'agitationScatter', 'shockScatter'];
 
   // Configuraciones de gráficos
   public barChartType: ChartType = 'bar';
@@ -289,6 +293,74 @@ export class StadisticsComponent implements OnInit {
     interaction: {
       intersect: false,
       mode: 'index'
+    }
+  };
+
+  // Datos y opciones para el scatter plot de agitación
+  public agitationScatterChartData: ChartData<'scatter'> = {
+    datasets: []
+  };
+
+  public agitationScatterChartOptions: ChartConfiguration<'scatter'>['options'] = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: 'Temperatura vs Frecuencia Cardíaca (Probabilidad de Agitación)'
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const point = context.raw as { x: number, y: number, r: number };
+            return `Temp: ${point.x}°C, FC: ${point.y} bpm, Prob. Agitación: ${point.r}%`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Temperatura (°C)' },
+        min: 30, max: 45
+      },
+      y: {
+        title: { display: true, text: 'Frecuencia Cardíaca (bpm)' },
+        min: 40, max: 180
+      }
+    }
+  };
+
+  // Datos y opciones para el scatter plot de shock
+  public shockScatterChartData: ChartData<'scatter'> = {
+    datasets: []
+  };
+
+  public shockScatterChartOptions: ChartConfiguration<'scatter'>['options'] = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: 'Presión Arterial vs Saturación O2 (Probabilidad de Shock)'
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const point = context.raw as { x: number, y: number, r: number };
+            return `PA: ${point.x} mmHg, SatO2: ${point.y}%, Prob. Shock: ${point.r}%`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Presión Arterial (mmHg)' },
+        min: 60, max: 180
+      },
+      y: {
+        title: { display: true, text: 'Saturación O2 (%)' },
+        min: 80, max: 100
+      }
     }
   };
 
@@ -587,6 +659,8 @@ export class StadisticsComponent implements OnInit {
     this.updateTemperatureEvolutionChart();
     this.updateHeartRateEvolutionChart();
     this.updateOxygenSaturationEvolutionChart();
+    this.updateAgitationScatterChart();
+    this.updateShockScatterChart();
   }
 
   updateStatsBarChart(): void {
@@ -700,60 +774,66 @@ export class StadisticsComponent implements OnInit {
     };
   }
 
-  getHighestRisk(): string {
-    if (!this.statistics) return '';
+  // Datos y configuración para el gráfico de dispersión (scatter plot) de agitación
+  updateAgitationScatterChart(): void {
+    if (!this.medicalRecords || this.medicalRecords.length === 0) {
+      this.agitationScatterChartData = { datasets: [] };
+      return;
+    }
 
-    const risks = this.statistics.data.probabilidades_riesgo;
-    if (!risks) return '';
+    // Usar la probabilidad global de agitación
+    const globalProb = this.getAgitationProbability();
+    const scatterData = this.medicalRecords.map(record => ({
+      x: record.temperature,
+      y: record.heart_rate,
+      r: globalProb // Puedes mejorar esto si tienes el valor por registro
+    }));
 
-    const riskNames: { [key: string]: string } = {
-      'riesgo_taquicardia': 'Taquicardia',
-      'riesgo_bradicardia': 'Bradicardia',
-      'riesgo_taquipnea': 'Taquipnea',
-      'riesgo_bradipnea': 'Bradipnea',
-      'riesgo_fiebre': 'Fiebre',
-      'riesgo_hipotermia': 'Hipotermia',
-      'riesgo_hipertension': 'Hipertensión',
-      'riesgo_hipotension': 'Hipotensión',
-      'riesgo_baja_saturacion': 'Baja Saturación'
+    this.agitationScatterChartData = {
+      datasets: [
+        {
+          label: 'Registros',
+          data: scatterData,
+          backgroundColor: scatterData.map(point => {
+            if (point.r >= 70) return 'rgba(220,53,69,0.7)'; // rojo
+            if (point.r >= 40) return 'rgba(255,193,7,0.7)'; // amarillo
+            return 'rgba(40,167,69,0.7)'; // verde
+          }),
+          pointRadius: scatterData.map(point => 5 + (point.r / 10)),
+        }
+      ]
     };
-
-    let maxRisk = 0;
-    let maxRiskName = '';
-
-    Object.entries(risks).forEach(([key, value]) => {
-      const riskValue = value as number;
-      if (riskValue > maxRisk) {
-        maxRisk = riskValue;
-        maxRiskName = riskNames[key];
-      }
-    });
-
-    return maxRisk > 0 ? `${maxRiskName} (${maxRisk}%)` : 'Sin riesgos detectados';
   }
 
-  getRiskLevel(risk: number): string {
-    if (risk >= 70) return 'Alto';
-    if (risk >= 40) return 'Medio';
-    if (risk > 0) return 'Bajo';
-    return 'Sin riesgo';
-  }
+  // Datos y configuración para el gráfico de dispersión (scatter plot) de shock
+  updateShockScatterChart(): void {
+    if (!this.medicalRecords || this.medicalRecords.length === 0) {
+      this.shockScatterChartData = { datasets: [] };
+      return;
+    }
 
-  getRiskColor(risk: number): string {
-    if (risk >= 70) return '#dc3545';
-    if (risk >= 40) return '#ffc107';
-    if (risk > 0) return '#28a745';
-    return '#6c757d';
-  }
+    // Usar la probabilidad global de shock
+    const globalProb = this.getShockProbability();
+    const scatterData = this.medicalRecords.map(record => ({
+      x: record.blood_pressure,
+      y: record.oxygen_saturation,
+      r: globalProb // Puedes mejorar esto si tienes el valor por registro
+    }));
 
-  get riskData(): any {
-    return this.statistics?.data?.probabilidades_riesgo || {};
-  }
-
-  getVariance(): number {
-    if (!this.statistics) return 0;
-    const deviation = this.statistics.data.estadisticas.temperatura.desviacion_estandar;
-    return deviation * deviation;
+    this.shockScatterChartData = {
+      datasets: [
+        {
+          label: 'Registros',
+          data: scatterData,
+          backgroundColor: scatterData.map(point => {
+            if (point.r >= 70) return 'rgba(220,53,69,0.7)'; // rojo
+            if (point.r >= 40) return 'rgba(255,193,7,0.7)'; // amarillo
+            return 'rgba(40,167,69,0.7)'; // verde
+          }),
+          pointRadius: scatterData.map(point => 5 + (point.r / 10)),
+        }
+      ]
+    };
   }
 
   updateTemperatureEvolutionChart(): void {
@@ -1109,7 +1189,9 @@ export class StadisticsComponent implements OnInit {
       rangeComparison: false,
       temperatureEvolution: false,
       heartRateEvolution: false,
-      oxygenSaturationEvolution: false
+      oxygenSaturationEvolution: false,
+      agitationScatter: false,
+      shockScatter: false
     };
 
     // Activar solo los gráficos seleccionados
@@ -1152,5 +1234,88 @@ export class StadisticsComponent implements OnInit {
 
   get noChartsSelected(): boolean {
     return this.selectedCharts.length === 0;
+  }
+
+  getHighestRisk(): string {
+    if (!this.statistics?.data?.probabilidades_riesgo) {
+      return 'Sin datos';
+    }
+
+    const risks = this.statistics.data.probabilidades_riesgo;
+    const riskEntries = [
+      { name: 'Taquicardia', value: risks.riesgo_taquicardia },
+      { name: 'Bradicardia', value: risks.riesgo_bradicardia },
+      { name: 'Taquipnea', value: risks.riesgo_taquipnea },
+      { name: 'Bradipnea', value: risks.riesgo_bradipnea },
+      { name: 'Fiebre', value: risks.riesgo_fiebre },
+      { name: 'Hipotermia', value: risks.riesgo_hipotermia },
+      { name: 'Hipertensión', value: risks.riesgo_hipertension },
+      { name: 'Hipotensión', value: risks.riesgo_hipotension },
+      { name: 'Baja Saturación', value: risks.riesgo_baja_saturacion }
+    ];
+
+    const highestRisk = riskEntries.reduce((max, current) =>
+      current.value > max.value ? current : max
+    );
+
+    return `${highestRisk.name} (${highestRisk.value.toFixed(1)}%)`;
+  }
+
+  getVariance(): number {
+    if (!this.statistics?.data?.estadisticas?.temperatura?.desviacion_estandar) {
+      return 0;
+    }
+    const std = this.statistics.data.estadisticas.temperatura.desviacion_estandar;
+    return std * std; // Varianza = desviación estándar al cuadrado
+  }
+
+  getRiskColor(value: number): string {
+    if (value >= 70) return '#dc3545'; // rojo
+    if (value >= 40) return '#ffc107'; // amarillo
+    if (value >= 20) return '#fd7e14'; // naranja
+    return '#28a745'; // verde
+  }
+
+  getRiskLevel(value: number): string {
+    if (value >= 70) return 'ALTO';
+    if (value >= 40) return 'MEDIO';
+    if (value >= 20) return 'BAJO';
+    return 'MÍNIMO';
+  }
+
+  get riskData(): any {
+    return this.statistics?.data?.probabilidades_riesgo || {
+      riesgo_taquicardia: 0,
+      riesgo_bradicardia: 0,
+      riesgo_taquipnea: 0,
+      riesgo_bradipnea: 0,
+      riesgo_fiebre: 0,
+      riesgo_hipotermia: 0,
+      riesgo_hipertension: 0,
+      riesgo_hipotension: 0,
+      riesgo_baja_saturacion: 0
+    };
+  }
+
+  getAgitationProbability(): number {
+    return this.statistics?.data?.combinaciones_clinicas?.probabilidad_agitacion || 0;
+  }
+
+  getAgitationProbabilityColor(): string {
+    const probability = this.getAgitationProbability();
+    if (probability >= 70) return '#dc3545'; // rojo
+    if (probability >= 40) return '#ffc107'; // amarillo
+    return '#28a745'; // verde
+  }
+
+  getShockProbability(): number {
+    return this.statistics?.data?.combinaciones_clinicas?.probabilidad_shock || 0;
+  }
+
+  getShockProbabilityColor(): string {
+    const probability = this.getShockProbability();
+    if (probability >= 70) return '#dc3545'; // rojo
+    if (probability >= 40) return '#ffc107'; // amarillo
+    return '#28a745'; // verde
   }
 }

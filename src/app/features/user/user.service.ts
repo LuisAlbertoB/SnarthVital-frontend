@@ -61,6 +61,15 @@ export class UserService {
     });
   }
 
+  // Método para obtener todos los usuarios del sistema (solo para admin)
+  getAllUsers(): Observable<User[]> {
+    return this.http.get<User[]>(`${environment.API_URL}/users`, {
+      headers: {
+        'Authorization': `Bearer ${this.authService.getToken()}`
+      }
+    });
+  }
+
   updateUser(user: User, profilePicture?: File): Observable<User> {
     const formData = new FormData();
 
@@ -82,6 +91,14 @@ export class UserService {
 
   updateUserWithFormData(userId: number, formData: FormData): Observable<User> {
     return this.http.put<User>(`${environment.API_URL}/users/${userId}`, formData, {
+      headers: {
+        'Authorization': `Bearer ${this.authService.getToken()}`
+      }
+    });
+  }
+
+  deleteUser(id: number): Observable<void> {
+    return this.http.delete<void>(`${environment.API_URL}/users/${id}`, {
       headers: {
         'Authorization': `Bearer ${this.authService.getToken()}`
       }

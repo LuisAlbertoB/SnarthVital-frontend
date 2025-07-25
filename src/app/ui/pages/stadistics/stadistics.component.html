@@ -252,6 +252,40 @@
                     </div>
                 </p-card>
             </div>
+
+            <!-- Gráfico de Agitación (Scatter Plot) -->
+            <div class="chart-container full-width" *ngIf="chartVisibility.agitationScatter">
+                <p-card header="Temperatura vs Frecuencia Cardíaca (Probabilidad de Agitación)">
+                    <div class="chart-wrapper">
+                        <canvas baseChart [data]="agitationScatterChartData" [options]="agitationScatterChartOptions"
+                            type="scatter">
+                        </canvas>
+                    </div>
+                    <div class="statistical-info mt-2">
+                        <span class="label">Probabilidad Global de Agitación:</span>
+                        <span class="value" [ngStyle]="{color: getAgitationProbabilityColor()}">
+                            {{ getAgitationProbability() }}%
+                        </span>
+                    </div>
+                </p-card>
+            </div>
+
+            <!-- Gráfico de Shock (Scatter Plot) -->
+            <div class="chart-container full-width" *ngIf="chartVisibility.shockScatter">
+                <p-card header="Presión Arterial vs Saturación O2 (Probabilidad de Shock)">
+                    <div class="chart-wrapper">
+                        <canvas baseChart [data]="shockScatterChartData" [options]="shockScatterChartOptions"
+                            type="scatter">
+                        </canvas>
+                    </div>
+                    <div class="statistical-info mt-2">
+                        <span class="label">Probabilidad Global de Shock:</span>
+                        <span class="value" [ngStyle]="{color: getShockProbabilityColor()}">
+                            {{ getShockProbability() }}%
+                        </span>
+                    </div>
+                </p-card>
+            </div>
         </div>
 
         <!-- Detalles de riesgos -->
@@ -407,3 +441,4 @@
             </div>
         </p-card>
     </div>
+</div>

@@ -47,7 +47,7 @@ export class WebsocketService {
     }
 
     // Construir la URL del WebSocket
-    const wsUrl = environment.WEBSOCKET_URL.replace('http', 'ws') + '/ws/sensores';
+    const wsUrl = environment.WEBSOCKET_URL.replace('http', 'ws') + '/sensores';
 
     this.socket = new WebSocket(wsUrl);
 
