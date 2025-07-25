@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 import { WebsocketService } from '../../../features/sensor/websocket.service';
 import { SensorData } from '../../../features/sensor/models/sensorData';
 import { AlertData } from '../../../features/sensor/models/alert-data';
+import { MedicalRecordCreated } from '../../../features/sensor/models/medical-record-created';
 import { WebSocketMessage } from '../../../features/sensor/models/websocket-message';
 import { User } from '../../../features/user/models/user';
 import { UserService } from '../../../features/user/user.service';
@@ -126,35 +127,6 @@ export class PanelComponent implements OnInit, OnDestroy {
       borderColor: '#FB8C00',
       borderWidth: 1
     }]
-  };
-
-  // Datos para presión arterial
-  public bloodPressureChartData: ChartData<'line'> = {
-    labels: [],
-    datasets: [
-      {
-        label: 'Sistólica (mmHg)',
-        data: [],
-        borderColor: '#66BB6A',
-        backgroundColor: 'rgba(102, 187, 106, 0.1)',
-        borderWidth: 2,
-        fill: false,
-        tension: 0.4,
-        pointRadius: 3,
-        pointHoverRadius: 6
-      },
-      {
-        label: 'Diastólica (mmHg)',
-        data: [],
-        borderColor: '#FF7043',
-        backgroundColor: 'rgba(255, 112, 67, 0.1)',
-        borderWidth: 2,
-        fill: false,
-        tension: 0.4,
-        pointRadius: 3,
-        pointHoverRadius: 6
-      }
-    ]
   };
 
   // Datos para ECG
@@ -299,61 +271,12 @@ export class PanelComponent implements OnInit, OnDestroy {
           display: true,
           text: 'Temperatura (°C)'
         },
-        min: 30,
+        min: 20,
         max: 45,
         ticks: {
           stepSize: 2
         }
       }
-    },
-    animation: {
-      duration: 300
-    }
-  };
-
-  public bloodPressureChartOptions: ChartConfiguration<'line'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top'
-      },
-      tooltip: {
-        mode: 'index',
-        intersect: false,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: 'white',
-        bodyColor: 'white'
-      }
-    },
-    scales: {
-      x: {
-        display: true,
-        title: {
-          display: true,
-          text: 'Tiempo'
-        },
-        ticks: {
-          maxTicksLimit: 10
-        }
-      },
-      y: {
-        display: true,
-        title: {
-          display: true,
-          text: 'Presión Arterial (mmHg)'
-        },
-        min: 40,
-        max: 200,
-        ticks: {
-          stepSize: 20
-        }
-      }
-    },
-    interaction: {
-      intersect: false,
-      mode: 'index'
     },
     animation: {
       duration: 300
@@ -393,10 +316,10 @@ export class PanelComponent implements OnInit, OnDestroy {
           display: true,
           text: 'Señal ECG (mV)'
         },
-        min: 0,
-        max: 500,
+        min: 1400,
+        max: 2500,
         ticks: {
-          stepSize: 50
+          stepSize: 40
         }
       }
     },
@@ -504,58 +427,77 @@ export class PanelComponent implements OnInit, OnDestroy {
     // Suscribirse a datos de sensores
     this.subscriptions.push(
       this.websocketService.sensorData$.subscribe(
-        (sensorData: SensorData | null) => {
-          if (sensorData) {
-            this.updateRealTimeData(sensorData);
+        data => {
+          if (data) {
+            this.updateRealTimeData(data);
           }
         }
       )
     );
 
-    // Suscribirse a alertas
+    // Suscribirse a alertas (solo agregar a la lista, sin toast)
     this.subscriptions.push(
       this.websocketService.alerts$.subscribe(
-        (alert: AlertData) => {
-          // Obtener el ID del usuario actual
-          const currentUserId = this.currentUser.id;
+        alert => {
+          this.alerts.push(alert);
+          console.log('Nueva alerta recibida:', alert);
+        }
+      )
+    );
 
-          // Determinar el ID del paciente que debe recibir las alertas
-          let targetPatientId = currentUserId;
-
-          // Si es doctor y tiene un paciente seleccionado, usar el ID del paciente seleccionado
-          if (this.currentUser.role === 'doctor' && this.selectedPatient) {
-            const patient = this.selectedPatient.value || this.selectedPatient;
-            if (patient && patient.id) {
-              targetPatientId = patient.id;
-            }
-          }
-
-          // Solo procesar alertas que correspondan al usuario actual o al paciente monitoreado
-          if (alert.patient_id === targetPatientId || alert.doctor_id === currentUserId) {
-            this.alerts.push(alert);
-            console.log('Nueva alerta recibida:', alert);
-          } else {
-            console.log(`Alerta ignorada - No corresponde al usuario actual (${currentUserId}) o paciente monitoreado (${targetPatientId})`);
-            console.log(`Alerta recibida: patient_id=${alert.patient_id}, doctor_id=${alert.doctor_id}`);
+    // Suscribirse al estado de sensores
+    this.subscriptions.push(
+      this.websocketService.sensorStatus$.subscribe(
+        status => {
+          if (status) {
+            this.sensorStatus = status;
           }
         }
       )
     );
 
+    // Suscribirse al estado de monitoreo (CRÍTICO para el funcionamiento)
     this.subscriptions.push(
-      this.websocketService.sensorStatus$.subscribe(status => {
-        if (status) {
-          this.sensorStatus = status;
+      this.websocketService.monitoringStatus$.subscribe(
+        status => {
+          this.isMonitoring = status;
+          console.log('Estado de monitoreo actualizado:', status);
         }
-      })
+      )
     );
 
-    // Suscribirse al estado de monitoreo
+    // Suscribirse a notificaciones de expedientes médicos creados
     this.subscriptions.push(
-      this.websocketService.monitoringStatus$.subscribe(status => {
-        this.isMonitoring = status;
-        console.log('Estado de monitoreo actualizado:', status);
-      })
+      this.websocketService.medicalRecordCreated$.subscribe(
+        medicalRecord => {
+          // Formatear la fecha del timestamp
+          const date = new Date(medicalRecord.timestamp * 1000);
+          const formattedDate = date.toLocaleString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+
+          // Mostrar toast con información del expediente médico
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Expediente Médico Creado',
+            detail: `${medicalRecord.message} - ${formattedDate}`,
+            life: 6000
+          });
+
+          // Log adicional para debugging
+          console.log('Nuevo expediente médico creado:', {
+            recordId: medicalRecord.record_id,
+            patientId: medicalRecord.patient_id,
+            doctorId: medicalRecord.doctor_id,
+            data: medicalRecord.data,
+            timestamp: formattedDate
+          });
+        }
+      )
     );
 
     // Sincronizar estado de monitoreo con el servicio
@@ -571,7 +513,7 @@ export class PanelComponent implements OnInit, OnDestroy {
     // Limpiar timer y warnings de navegación
     this.clearOneMinuteTimer();
     this.removeNavigationWarning();
-    // Desconectar WebSocket
+    // Desconectar del WebSocket
     this.websocketService.disconnect();
   }
 
@@ -693,7 +635,7 @@ export class PanelComponent implements OnInit, OnDestroy {
           // Asumiendo que blood_pressure viene como "120/80"
           const [systolic, diastolic] = data.blood_pressure.toString().split('/').map(Number);
           this.realTimeData.bloodPressure = { systolic, diastolic };
-          this.updateBloodPressureChart(systolic, diastolic);
+          console.log(`Presión arterial actualizada: ${systolic}/${diastolic} mmHg`);
         }
         break;
       case 'ritmo_cardiaco':
@@ -807,49 +749,6 @@ export class PanelComponent implements OnInit, OnDestroy {
     };
   }
 
-  private updateBloodPressureChart(systolic: number, diastolic: number) {
-    const maxDataPoints = 20;
-    const currentTime = new Date().toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-
-    if (this.bloodPressureChartData.labels && this.bloodPressureChartData.labels.length >= maxDataPoints) {
-      this.bloodPressureChartData.labels.shift();
-      if (this.bloodPressureChartData.datasets[0]?.data) {
-        this.bloodPressureChartData.datasets[0].data.shift();
-      }
-      if (this.bloodPressureChartData.datasets[1]?.data) {
-        this.bloodPressureChartData.datasets[1].data.shift();
-      }
-    }
-
-    if (this.bloodPressureChartData.labels) {
-      this.bloodPressureChartData.labels.push(currentTime);
-    }
-    if (this.bloodPressureChartData.datasets[0]?.data) {
-      this.bloodPressureChartData.datasets[0].data.push(systolic);
-    }
-    if (this.bloodPressureChartData.datasets[1]?.data) {
-      this.bloodPressureChartData.datasets[1].data.push(diastolic);
-    }
-
-    this.bloodPressureChartData = {
-      labels: this.bloodPressureChartData.labels ? [...this.bloodPressureChartData.labels] : [],
-      datasets: [
-        {
-          ...this.bloodPressureChartData.datasets[0],
-          data: this.bloodPressureChartData.datasets[0]?.data ? [...this.bloodPressureChartData.datasets[0].data] : []
-        },
-        {
-          ...this.bloodPressureChartData.datasets[1],
-          data: this.bloodPressureChartData.datasets[1]?.data ? [...this.bloodPressureChartData.datasets[1].data] : []
-        }
-      ]
-    };
-  }
-
   private updateEcgChart(value: number) {
     const maxDataPoints = 20;
     const currentTime = new Date().toLocaleTimeString('es-ES', {
@@ -945,34 +844,6 @@ export class PanelComponent implements OnInit, OnDestroy {
         borderColor: '#FB8C00',
         borderWidth: 1
       }]
-    };
-
-    this.bloodPressureChartData = {
-      labels: [],
-      datasets: [
-        {
-          label: 'Sistólica (mmHg)',
-          data: [],
-          borderColor: '#66BB6A',
-          backgroundColor: 'rgba(102, 187, 106, 0.1)',
-          borderWidth: 2,
-          fill: false,
-          tension: 0.4,
-          pointRadius: 3,
-          pointHoverRadius: 6
-        },
-        {
-          label: 'Diastólica (mmHg)',
-          data: [],
-          borderColor: '#FF7043',
-          backgroundColor: 'rgba(255, 112, 67, 0.1)',
-          borderWidth: 2,
-          fill: false,
-          tension: 0.4,
-          pointRadius: 3,
-          pointHoverRadius: 6
-        }
-      ]
     };
 
     this.ecgChartData = {
