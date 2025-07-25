@@ -63,6 +63,16 @@ export class MedicalRecordsComponent implements OnInit {
   destinationOptions: any[] = [];
   customEmail: string = '';
 
+  // Variables para el diálogo de edición
+  showEditDialog: boolean = false;
+  editingRecord: Record | null = null;
+  updatingRecord: boolean = false;
+  editForm = {
+    diagnosis: '',
+    treatment: '',
+    notes: ''
+  };
+
   constructor(
     private authService: AuthService,
     private recordService: MedicalRecordService,
@@ -387,6 +397,87 @@ export class MedicalRecordsComponent implements OnInit {
     } else {
       return !this.emailDestination || !this.isValidEmail(this.emailDestination);
     }
+  }
+
+  // Métodos para edición de expedientes
+  openEditDialog(record: Record): void {
+    this.editingRecord = { ...record }; // Crear una copia del record
+    this.editForm = {
+      diagnosis: record.diagnosis || '',
+      treatment: record.treatment || '',
+      notes: record.notes || ''
+    };
+    this.showEditDialog = true;
+  }
+
+  closeEditDialog(): void {
+    this.showEditDialog = false;
+    this.editingRecord = null;
+    this.editForm = {
+      diagnosis: '',
+      treatment: '',
+      notes: ''
+    };
+  }
+
+  canEditRecord(): boolean {
+    return this.currentUser.role === 'doctor' || this.currentUser.role === 'admin';
+  }
+
+  updateRecord(): void {
+    if (!this.editingRecord) return;
+
+    // Validar que al menos un campo tenga contenido
+    if (!this.editForm.diagnosis.trim() && !this.editForm.treatment.trim() && !this.editForm.notes.trim()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Debe completar al menos un campo (diagnóstico, tratamiento o notas)'
+      });
+      return;
+    }
+
+    this.updatingRecord = true;
+
+    const updateData = {
+      patient_id: this.editingRecord.patient_id,
+      doctor_id: this.editingRecord.doctor_id,
+      temperature: this.editingRecord.temperature,
+      blood_pressure: this.editingRecord.blood_pressure,
+      oxygen_saturation: this.editingRecord.oxygen_saturation,
+      heart_rate: this.editingRecord.heart_rate,
+      diagnosis: this.editForm.diagnosis.trim(),
+      treatment: this.editForm.treatment.trim(),
+      notes: this.editForm.notes.trim()
+    };
+
+    this.recordService.updateMedicalRecord(this.editingRecord.id, updateData).subscribe({
+      next: (updatedRecord) => {
+        // Actualizar el record en la lista local
+        const index = this.records.findIndex(r => r.id === updatedRecord.id);
+        if (index !== -1) {
+          this.records[index] = updatedRecord;
+        }
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Expediente médico actualizado correctamente'
+        });
+        this.closeEditDialog();
+      },
+      error: (error) => {
+        console.error('Error al actualizar el expediente:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo actualizar el expediente médico'
+        });
+      },
+      complete: () => {
+        this.updatingRecord = false;
+      }
+    });
   }
 
   isValidEmail(email: string): boolean {

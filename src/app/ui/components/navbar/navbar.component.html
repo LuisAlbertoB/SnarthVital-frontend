@@ -21,10 +21,10 @@
     <a routerLink="/stadistics" routerLinkActive="router-link-active">
       <i class="pi pi-chart-line text-2xl"></i>
     </a>
-    <a routerLink="/history" routerLinkActive="router-link-active" *ngIf="user?.role === 'doctor'">
+    <a routerLink="/history" routerLinkActive="router-link-active" *ngIf="user?.role === 'doctor' || user?.role === 'admin'">
       <i class="pi pi-id-card text-2xl"></i>
     </a>
-    <a routerLink="/createPaciente" routerLinkActive="router-link-active" *ngIf="user?.role === 'doctor'">
+    <a routerLink="/createPaciente" routerLinkActive="router-link-active" *ngIf="user?.role === 'doctor' || user?.role === 'admin'">
       <i class="pi pi-user-plus text-2xl"></i>
     </a>
     <!-- Puedes agregar más íconos/rutas aquí -->

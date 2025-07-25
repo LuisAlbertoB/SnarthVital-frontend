@@ -140,6 +140,11 @@
                                     (click)="openEmailDialog(expediente.id)" [disabled]="isDownloading(expediente.id)"
                                     pTooltip="Enviar por correo" tooltipPosition="top">
                                 </button>
+                                <button pButton type="button" icon="pi pi-pencil"
+                                    class="p-button-text p-button-sm p-button-rounded p-button-warning"
+                                    (click)="openEditDialog(expediente)" [disabled]="isDownloading(expediente.id)"
+                                    *ngIf="canEditRecord()" pTooltip="Editar expediente" tooltipPosition="top">
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -234,7 +239,7 @@
                 <p class="text-gray-600">
                     <strong>Fecha:</strong> {{ getSelectedRecord().created_at | date: 'dd/MM/yyyy' }}
                 </p>
-                <p class="text-gray-600" *ngIf="currentUser.role === 'doctor'">
+                <p class="text-gray-600" *ngIf="currentUser.role === 'doctor' || currentUser.role === 'admin'">
                     <strong>Paciente:</strong> {{ getSelectedRecord().patient.name }} {{
                     getSelectedRecord().patient.lastname }}
                 </p>
@@ -256,6 +261,110 @@
             </button>
             <button pButton label="Enviar Correo" icon="pi pi-send" class="p-button"
                 [disabled]="isEmailInvalid() || sendingEmail" [loading]="sendingEmail" (click)="sendRecordByEmail()">
+            </button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<!-- Diálogo para editar expediente -->
+<p-dialog header="Editar Expediente Médico" [(visible)]="showEditDialog" [modal]="true" [style]="{ width: '600px' }"
+    [draggable]="false" [resizable]="false" [closeOnEscape]="true" styleClass="p-fluid">
+
+    <div class="p-fluid" *ngIf="editingRecord">
+        <!-- Información del expediente (solo lectura) -->
+        <div class="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500 mb-4">
+            <h4 class="font-medium text-gray-700 mb-2">
+                <i class="pi pi-file-o mr-2 text-blue-600"></i>
+                Información del Expediente
+            </h4>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                <p class="text-gray-600">
+                    <strong>Expediente #:</strong> {{ editingRecord.id }}
+                </p>
+                <p class="text-gray-600">
+                    <strong>Fecha:</strong> {{ editingRecord.created_at | date: 'dd/MM/yyyy HH:mm' }}
+                </p>
+                <p class="text-gray-600">
+                    <strong>Paciente:</strong> {{ editingRecord.patient.name }} {{ editingRecord.patient.lastname }}
+                </p>
+                <p class="text-gray-600" *ngIf="editingRecord.doctor">
+                    <strong>Doctor:</strong> {{ editingRecord.doctor.name }} {{ editingRecord.doctor.lastname }}
+                </p>
+            </div>
+
+            <!-- Signos vitales (solo lectura) -->
+            <div class="mt-3 pt-3 border-t border-blue-200">
+                <h5 class="font-medium text-gray-700 mb-2">Signos Vitales</h5>
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    <p class="text-gray-600">
+                        <strong>Temperatura:</strong> {{ editingRecord.temperature }}°C
+                    </p>
+                    <p class="text-gray-600">
+                        <strong>Presión Arterial:</strong> {{ editingRecord.blood_pressure }} mmHg
+                    </p>
+                    <p class="text-gray-600">
+                        <strong>Saturación O2:</strong> {{ editingRecord.oxygen_saturation }}%
+                    </p>
+                    <p class="text-gray-600">
+                        <strong>Frecuencia Cardíaca:</strong> {{ editingRecord.heart_rate }} bpm
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Campos editables -->
+        <div class="space-y-4">
+            <!-- Diagnóstico -->
+            <div class="field">
+                <label for="diagnosis" class="font-medium text-gray-700 mb-2 block">
+                    <i class="pi pi-medical mr-2"></i>
+                    Diagnóstico
+                </label>
+                <textarea id="diagnosis" pInputTextarea [(ngModel)]="editForm.diagnosis"
+                    placeholder="Ingrese el diagnóstico médico..." rows="3" class="w-full resize-none">
+                </textarea>
+                <small class="text-gray-500 mt-1">
+                    Descripción del diagnóstico médico del paciente
+                </small>
+            </div>
+
+            <!-- Tratamiento -->
+            <div class="field">
+                <label for="treatment" class="font-medium text-gray-700 mb-2 block">
+                    <i class="pi pi-heart mr-2"></i>
+                    Tratamiento
+                </label>
+                <textarea id="treatment" pInputTextarea [(ngModel)]="editForm.treatment"
+                    placeholder="Ingrese el tratamiento recomendado..." rows="3" class="w-full resize-none">
+                </textarea>
+                <small class="text-gray-500 mt-1">
+                    Tratamiento y medicamentos recomendados
+                </small>
+            </div>
+
+            <!-- Notas -->
+            <div class="field">
+                <label for="notes" class="font-medium text-gray-700 mb-2 block">
+                    <i class="pi pi-comment mr-2"></i>
+                    Notas Adicionales
+                </label>
+                <textarea id="notes" pInputTextarea [(ngModel)]="editForm.notes"
+                    placeholder="Ingrese notas adicionales..." rows="4" class="w-full resize-none">
+                </textarea>
+                <small class="text-gray-500 mt-1">
+                    Observaciones adicionales y comentarios del médico
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+            <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary"
+                (click)="closeEditDialog()" [disabled]="updatingRecord">
+            </button>
+            <button pButton label="Guardar Cambios" icon="pi pi-check" class="p-button" [disabled]="updatingRecord"
+                [loading]="updatingRecord" (click)="updateRecord()">
             </button>
         </div>
     </ng-template>

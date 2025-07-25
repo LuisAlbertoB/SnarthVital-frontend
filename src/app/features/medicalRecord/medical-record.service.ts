@@ -103,4 +103,22 @@ export class MedicalRecordService {
     });
   }
 
+  updateMedicalRecord(recordId: number, updateData: {
+    patient_id: number;
+    doctor_id: number | null;
+    temperature: number;
+    blood_pressure: number;
+    oxygen_saturation: number;
+    heart_rate: number;
+    diagnosis: string;
+    treatment: string;
+    notes: string;
+  }): Observable<Record> {
+    return this.http.put<Record>(`${this.apiUrl}/medicalRecords/${recordId}`, updateData, {
+      headers: {
+        'Authorization': `Bearer ${this.authService.getToken()}`
+      }
+    });
+  }
+
 }
