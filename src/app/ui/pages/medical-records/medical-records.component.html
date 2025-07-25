@@ -135,10 +135,11 @@
                                     [disabled]="isDownloading(expediente.id)" pTooltip="Descargar PDF"
                                     tooltipPosition="top">
                                 </button>
-                                <!-- <button pButton type="button" icon="pi pi-send"
+                                <button pButton type="button" icon="pi pi-send"
                                     class="p-button-text p-button-sm p-button-rounded p-button-success"
-                                    pTooltip="Enviar por email" tooltipPosition="top">
-                                </button> -->
+                                    (click)="openEmailDialog(expediente.id)" [disabled]="isDownloading(expediente.id)"
+                                    pTooltip="Enviar por correo" tooltipPosition="top">
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -160,3 +161,105 @@
         </div>
     </main>
 </div>
+
+<!-- Diálogo para enviar correo -->
+<p-dialog header="Enviar Expediente por Correo" [(visible)]="showEmailDialog" [modal]="true"
+    [style]="{ width: '500px' }" [draggable]="false" [resizable]="false" [closeOnEscape]="true" styleClass="p-fluid">
+
+    <div class="p-fluid">
+        <!-- Selector de tipo de destinatario -->
+        <div class="field mb-4">
+            <label for="destinationType" class="font-medium text-gray-700 mb-2 block">
+                <i class="pi pi-users mr-2"></i>
+                Enviar a *
+            </label>
+            <p-select id="destinationType" [options]="destinationOptions" [(ngModel)]="selectedDestinationType"
+                placeholder="Seleccionar destinatario" styleClass="w-full" panelStyleClass="shadow-lg"
+                optionLabel="label" optionValue="value" (onChange)="onDestinationTypeChange()">
+            </p-select>
+            <small class="text-gray-500 mt-1">
+                Selecciona a quién deseas enviar el expediente
+            </small>
+        </div>
+
+        <!-- Campo de correo personalizado (solo visible cuando se selecciona 'other') -->
+        <div class="field mb-4" *ngIf="selectedDestinationType === 'other'">
+            <label for="customEmail" class="font-medium text-gray-700 mb-2 block">
+                <i class="pi pi-envelope mr-2"></i>
+                Correo electrónico personalizado *
+            </label>
+            <input id="customEmail" type="email" pInputText [(ngModel)]="customEmail" placeholder="ejemplo@correo.com"
+                required class="w-full" (ngModelChange)="onCustomEmailChange()"
+                [class.ng-invalid]="customEmail && !isValidEmail(customEmail)" />
+            <small class="text-gray-500 mt-1">
+                Ingresa la dirección de correo personalizada
+            </small>
+        </div>
+
+        <!-- Campo de correo destinatario (solo lectura, muestra el correo seleccionado) -->
+        <div class="field mb-4" *ngIf="selectedDestinationType !== 'other'">
+            <label for="emailDestination" class="font-medium text-gray-700 mb-2 block">
+                <i class="pi pi-envelope mr-2"></i>
+                Correo electrónico del destinatario
+            </label>
+            <input id="emailDestination" type="email" pInputText [(ngModel)]="emailDestination" readonly
+                class="w-full bg-gray-50" />
+            <small class="text-gray-500 mt-1">
+                El expediente será enviado a esta dirección de correo
+            </small>
+        </div>
+
+        <!-- Campo de mensaje personalizado -->
+        <div class="field mb-4">
+            <label for="customMessage" class="font-medium text-gray-700 mb-2 block">
+                <i class="pi pi-comment mr-2"></i>
+                Mensaje personalizado (opcional)
+            </label>
+            <textarea id="customMessage" pInputTextarea [(ngModel)]="customMessage"
+                placeholder="Mensaje adicional que desea incluir en el correo..." rows="3" class="w-full resize-none">
+            </textarea>
+        </div>
+
+        <!-- Información del expediente -->
+        <div class="bg-gray-50 p-3 rounded-lg border-l-4 border-blue-500 mb-4"
+            *ngIf="selectedRecordId && getSelectedRecord()">
+            <h4 class="font-medium text-gray-700 mb-2">
+                <i class="pi pi-file-o mr-2 text-blue-600"></i>
+                Expediente a enviar
+            </h4>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                <p class="text-gray-600">
+                    <strong>Expediente #:</strong> {{ selectedRecordId }}
+                </p>
+                <p class="text-gray-600">
+                    <strong>Fecha:</strong> {{ getSelectedRecord().created_at | date: 'dd/MM/yyyy' }}
+                </p>
+                <p class="text-gray-600" *ngIf="currentUser.role === 'doctor'">
+                    <strong>Paciente:</strong> {{ getSelectedRecord().patient.name }} {{
+                    getSelectedRecord().patient.lastname }}
+                </p>
+                <p class="text-gray-600" *ngIf="currentUser.role === 'patient' && getSelectedRecord().doctor">
+                    <strong>Doctor:</strong> {{ getSelectedRecord().doctor.name }} {{
+                    getSelectedRecord().doctor.lastname }}
+                </p>
+            </div>
+            <p class="text-sm text-gray-500 mt-2">
+                Se enviará toda la información médica del expediente formateada profesionalmente.
+            </p>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+            <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary"
+                (click)="closeEmailDialog()" [disabled]="sendingEmail">
+            </button>
+            <button pButton label="Enviar Correo" icon="pi pi-send" class="p-button"
+                [disabled]="isEmailInvalid() || sendingEmail" [loading]="sendingEmail" (click)="sendRecordByEmail()">
+            </button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<!-- Toast para notificaciones -->
+<p-toast position="bottom-right" [life]="5000"></p-toast>

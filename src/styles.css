@@ -170,6 +170,18 @@ body {
     background-color: rgba(70, 149, 189, 0.1) !important;
 }
 
+/* Botones Text Secondary (gris) */
+.p-button.p-button-text.p-button-secondary {
+    background-color: transparent !important;
+    border: none !important;
+    color: #6c757d !important;
+}
+
+.p-button.p-button-text.p-button-secondary:hover:not(:disabled) {
+    background-color: rgba(108, 117, 125, 0.1) !important;
+    color: #545b62 !important;
+}
+
 /* Mejorar visibilidad del icono en botones info-text (como descargar PDF) */
 .p-button.p-button-info.p-button-text .p-button-icon {
     color: #4695BD !important;
