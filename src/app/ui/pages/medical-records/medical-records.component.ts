@@ -53,6 +53,12 @@ export class MedicalRecordsComponent implements OnInit {
   patientOptions: any[] = [];
   downloadingRecords: Set<number> = new Set();
 
+  // Estados de carga y error
+  isLoading: boolean = false;
+  isLoadingPatients: boolean = false;
+  hasError: boolean = false;
+  errorMessage: string = '';
+
   // Variables para el diálogo de correo
   showEmailDialog: boolean = false;
   emailDestination: string = '';
@@ -97,6 +103,7 @@ export class MedicalRecordsComponent implements OnInit {
       console.error('Doctor ID is not available');
       return;
     }
+    this.isLoadingPatients = true;
     this.userService.getPatients(this.currentUser.id).subscribe({
       next: (data) => {
         this.patients = data;
@@ -104,38 +111,70 @@ export class MedicalRecordsComponent implements OnInit {
           label: `${patient.name} ${patient.lastname}`,
           value: patient
         }));
+        this.isLoadingPatients = false;
       },
       error: (error) => {
         console.error('Error fetching patients:', error);
+        this.isLoadingPatients = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al cargar la lista de pacientes',
+          life: 3000
+        });
       }
     });
   }
 
-  getRecords(): Record[] {
+  getRecords(): void {
     if (!this.currentUser.id) {
       console.error('Doctor ID is not available');
-      return [];
+      return;
     }
+
+    this.isLoading = true;
+    this.hasError = false;
+    this.errorMessage = '';
+
     if (this.currentUser.role === 'doctor') {
       this.recordService.getDoctorMedicalRecords(this.currentUser.id).subscribe({
         next: (data) => {
           this.records = data;
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching doctor medical records:', error);
+          this.isLoading = false;
+          this.hasError = true;
+          this.errorMessage = 'Error al cargar los expedientes médicos';
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error al cargar los expedientes médicos',
+            life: 3000
+          });
         }
       });
     } else if (this.currentUser.role === 'patient') {
       this.recordService.getPatientMedicalRecords(this.currentUser.id).subscribe({
         next: (data) => {
           this.records = data;
+          this.isLoading = false;
         },
         error: (error) => {
           console.error('Error fetching patient medical records:', error);
+          this.isLoading = false;
+          this.hasError = true;
+          this.errorMessage = 'Error al cargar los expedientes médicos';
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error al cargar los expedientes médicos',
+            life: 3000
+          });
         }
       });
     }
-    return this.records;
   }
 
   getPatients(): User[] {
@@ -143,6 +182,10 @@ export class MedicalRecordsComponent implements OnInit {
   }
 
   applyFilters(): void {
+    this.isLoading = true;
+    this.hasError = false;
+    this.errorMessage = '';
+
     // Si hay al menos una fecha seleccionada
     if (this.rangeDates && this.rangeDates.length > 0 && this.rangeDates[0]) {
       // Si solo hay una fecha, usa la misma para inicio y fin
@@ -157,18 +200,38 @@ export class MedicalRecordsComponent implements OnInit {
           this.recordService.getPatientMedicalRecordsByRange(patientId, startDate, endDate).subscribe({
             next: (data) => {
               this.records = this.filterByRecordNumber(data);
+              this.isLoading = false;
             },
             error: (error) => {
               console.error('Error filtrando por paciente y rango:', error);
+              this.isLoading = false;
+              this.hasError = true;
+              this.errorMessage = 'Error al filtrar expedientes por fecha';
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error al filtrar expedientes por fecha',
+                life: 3000
+              });
             }
           });
         } else {
           this.recordService.getDoctorMedicalRecordsByRange(doctorId, startDate, endDate).subscribe({
             next: (data) => {
               this.records = this.filterByRecordNumber(data);
+              this.isLoading = false;
             },
             error: (error) => {
               console.error('Error filtrando por doctor y rango:', error);
+              this.isLoading = false;
+              this.hasError = true;
+              this.errorMessage = 'Error al filtrar expedientes por fecha';
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error al filtrar expedientes por fecha',
+                life: 3000
+              });
             }
           });
         }
@@ -177,14 +240,25 @@ export class MedicalRecordsComponent implements OnInit {
         this.recordService.getPatientMedicalRecordsByRange(patientId, startDate, endDate).subscribe({
           next: (data) => {
             this.records = this.filterByRecordNumber(data);
+            this.isLoading = false;
           },
           error: (error) => {
             console.error('Error filtrando por paciente y rango:', error);
+            this.isLoading = false;
+            this.hasError = true;
+            this.errorMessage = 'Error al filtrar expedientes por fecha';
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error al filtrar expedientes por fecha',
+              life: 3000
+            });
           }
         });
       }
     } else if (this.recordNumber) {
       this.records = this.filterByRecordNumber(this.records);
+      this.isLoading = false;
     } else {
       this.getRecords();
     }
@@ -483,5 +557,14 @@ export class MedicalRecordsComponent implements OnInit {
   isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  }
+
+  clearFilters(): void {
+    this.rangeDates = [];
+    this.recordNumber = '';
+    this.selectedPatient = undefined;
+    this.hasError = false;
+    this.errorMessage = '';
+    this.getRecords();
   }
 }
